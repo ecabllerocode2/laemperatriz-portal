@@ -8,6 +8,7 @@ export interface PortalProfileDoc {
   postalCode: string;
   depositStatus: DepositStatus;
   depositAmount: number;
+  customerId?: string;
   receiptUrl?: string;
   receiptSubmittedAt?: string;
   createdAt?: string;

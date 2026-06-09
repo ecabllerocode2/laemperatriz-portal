@@ -8,6 +8,7 @@ import { Lock, Mail, MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
 import { auth } from "@/lib/firebase";
 import { createPortalProfile } from "@/lib/portal-profile";
+import { linkPortalCustomer } from "@/lib/portal-customer";
 import { useAuthStore } from "@/stores/auth.store";
 
 const registerSchema = z.object({
@@ -56,6 +57,11 @@ export default function RegisterPage() {
       await updateProfile(credential.user, { displayName: data.name });
       await createPortalProfile(credential.user.uid, {
         email: data.email,
+        name: data.name,
+        phone: data.phone,
+        postalCode: data.postalCode,
+      });
+      await linkPortalCustomer({
         name: data.name,
         phone: data.phone,
         postalCode: data.postalCode,

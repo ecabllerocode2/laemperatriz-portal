@@ -1,26 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { fetchSignInMethodsForEmail, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/auth.store";
 
-const emailSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("Correo inválido"),
-});
-
-const passwordSchema = z.object({
   password: z.string().min(1, "La contraseña es requerida"),
 });
 
-type EmailForm = z.infer<typeof emailSchema>;
-type PasswordForm = z.infer<typeof passwordSchema>;
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [step, setStep] = useState<"email" | "password">("email");
-  const [email, setEmail] = useState("");
   const [serverError, setServerError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -29,32 +23,27 @@ export default function LoginPage() {
     if (user) navigate("/", { replace: true });
   }, [user, navigate]);
 
-  const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
-  const passwordForm = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
-  const onEmailSubmit = async (data: EmailForm) => {
+  const email = watch("email");
+
+  const onSubmit = async (data: LoginForm) => {
     setServerError(null);
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, data.email);
-      if (methods.length === 0) {
-        navigate(`/register?email=${encodeURIComponent(data.email)}`);
-        return;
-      }
-      setEmail(data.email);
-      setStep("password");
-    } catch {
-      setServerError("No pudimos verificar el correo. Intenta de nuevo.");
-    }
-  };
-
-  const onPasswordSubmit = async (data: PasswordForm) => {
-    setServerError(null);
-    try {
-      await signInWithEmailAndPassword(auth, email, data.password);
+      await signInWithEmailAndPassword(auth, data.email, data.password);
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
-      if (code === "auth/invalid-credential" || code === "auth/wrong-password") {
-        setServerError("Contraseña incorrecta.");
+      if (
+        code === "auth/invalid-credential" ||
+        code === "auth/wrong-password" ||
+        code === "auth/user-not-found"
+      ) {
+        setServerError("Correo o contraseña incorrectos.");
       } else {
         setServerError("Ocurrió un error. Intenta de nuevo.");
       }
@@ -73,98 +62,65 @@ export default function LoginPage() {
           <p className="text-sm text-neutral-500">Portal de clientas</p>
         </div>
 
-        {step === "email" ? (
-          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} noValidate className="space-y-5">
-            <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-brand-night">
-                Correo electrónico
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm transition focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/15"
-                placeholder="tu@correo.com"
-                {...emailForm.register("email")}
-              />
-              {emailForm.formState.errors.email ? (
-                <p className="mt-1 text-xs text-brand-red">
-                  {emailForm.formState.errors.email.message}
-                </p>
-              ) : null}
-            </div>
-
-            {serverError ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red">
-                {serverError}
-              </div>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+          <div>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-brand-night">
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm transition focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/15"
+              placeholder="tu@correo.com"
+              {...register("email")}
+            />
+            {errors.email ? (
+              <p className="mt-1 text-xs text-brand-red">{errors.email.message}</p>
             ) : null}
+          </div>
 
-            <button
-              type="submit"
-              disabled={emailForm.formState.isSubmitting}
-              className="w-full rounded-xl bg-brand-red py-3 font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {emailForm.formState.isSubmitting ? "Verificando…" : "Continuar"}
-            </button>
-          </form>
-        ) : (
-          <form
-            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
-            noValidate
-            className="space-y-5"
+          <div>
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-brand-night">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm transition focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/15"
+              placeholder="••••••••"
+              {...register("password")}
+            />
+            {errors.password ? (
+              <p className="mt-1 text-xs text-brand-red">{errors.password.message}</p>
+            ) : null}
+          </div>
+
+          {serverError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red">
+              {serverError}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full rounded-xl bg-brand-red py-3 font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <p className="text-sm text-neutral-600">
-              Ingresa la contraseña de{" "}
-              <span className="font-medium text-brand-night">{email}</span>
-            </p>
+            {isSubmitting ? "Iniciando sesión…" : "Iniciar sesión"}
+          </button>
+        </form>
 
-            <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-brand-night">
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                autoFocus
-                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm transition focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/15"
-                placeholder="••••••••"
-                {...passwordForm.register("password")}
-              />
-              {passwordForm.formState.errors.password ? (
-                <p className="mt-1 text-xs text-brand-red">
-                  {passwordForm.formState.errors.password.message}
-                </p>
-              ) : null}
-            </div>
-
-            {serverError ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red">
-                {serverError}
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={passwordForm.formState.isSubmitting}
-              className="w-full rounded-xl bg-brand-red py-3 font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {passwordForm.formState.isSubmitting ? "Iniciando sesión…" : "Iniciar sesión"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setStep("email");
-                setServerError(null);
-              }}
-              className="w-full text-sm text-brand-red"
-            >
-              Usar otro correo
-            </button>
-          </form>
-        )}
+        <p className="mt-5 text-center text-sm text-neutral-600">
+          ¿No tienes cuenta?{" "}
+          <Link
+            to={email ? `/register?email=${encodeURIComponent(email)}` : "/register"}
+            className="font-medium text-sky-600 hover:underline"
+          >
+            Regístrate
+          </Link>
+        </p>
       </div>
     </div>
   );
