@@ -27,9 +27,9 @@ export default function PortalLayout() {
   }, [profile, depositStatus, showCartModal, openCartModal]);
 
   return (
-    <div className="min-h-screen bg-neutral-pearl pb-24">
+    <div className="min-h-dvh bg-neutral-silk pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
       <PortalHeader firstName={firstNameFrom(displayName)} />
-      <main className="mx-auto max-w-lg space-y-4 px-4 py-4">
+      <main className="portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5">
         <Outlet context={{ profile, depositStatus }} />
       </main>
       <BottomNav />

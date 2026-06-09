@@ -23,6 +23,13 @@
 html {
   font-size: 14px;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 15px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -33,10 +40,15 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-neutral-pearl);
+  background-color: var(--color-neutral-silk);
   color: var(--color-brand-night);
   line-height: 1.5;
   margin: 0;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
 }
 
 button,
@@ -49,6 +61,33 @@ a,
 :focus-visible {
   outline: 2px solid var(--color-brand-red);
   outline-offset: 2px;
+}
+
+.portal-shell {
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .portal-shell {
+    max-width: 36rem;
+    padding-inline: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .portal-shell {
+    max-width: 42rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+.modal-sheet {
+  max-height: min(90dvh, 720px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes toast-in {
@@ -64,4 +103,32 @@ a,
 
 .animate-toast-in {
   animation: toast-in 0.25s ease-out;
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 640px) {
+  @keyframes sheet-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
 }

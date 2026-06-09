@@ -14,8 +14,8 @@ interface LiveBannerProps {
 
 export default function LiveBanner({ cartActive }: LiveBannerProps) {
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white px-5 py-5 shadow-sm">
-      <h2 className="text-center font-display text-xl leading-snug text-brand-night">
+    <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+      <h2 className="text-center font-display text-lg leading-snug text-brand-night sm:text-xl">
         ¡Activa tu carrito y entra al live!
       </h2>
 

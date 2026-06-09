@@ -62,8 +62,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-silk px-4 py-8">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-md">
+    <div className="flex min-h-dvh items-center justify-center bg-neutral-silk px-4 py-8 sm:px-6">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-md sm:p-8">
         <div className="mb-8 text-center">
           <img
             src="/favicon.jpeg"

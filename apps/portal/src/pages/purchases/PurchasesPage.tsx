@@ -19,16 +19,16 @@ export default function PurchasesPage() {
 
       <LiveBanner cartActive={cartActive} />
 
-      <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-lg font-bold text-brand-night">Mis compras</h2>
+      <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="text-base font-bold text-brand-night sm:text-lg">Mis compras</h2>
             <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-brand-red">
               0 compras
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               type="button"
               className="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-brand-night hover:bg-neutral-50"
@@ -46,7 +46,7 @@ export default function PurchasesPage() {
           </div>
         </div>
 
-        <p className="mt-8 pb-4 text-center text-sm text-neutral-500">
+        <p className="mt-6 pb-2 text-center text-sm text-neutral-500 sm:mt-8 sm:pb-4">
           Aún no hay compras registradas a tu nombre.
         </p>
       </section>

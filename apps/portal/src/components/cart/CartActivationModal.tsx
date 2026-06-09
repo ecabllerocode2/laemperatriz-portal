@@ -8,9 +8,9 @@ export default function CartActivationModal() {
   if (!showCartModal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4">
       <div
-        className="relative w-full max-w-md rounded-3xl bg-white px-6 pb-6 pt-8 shadow-2xl"
+        className="modal-sheet animate-sheet-up relative w-full max-w-md rounded-t-3xl bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-7 shadow-2xl sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-modal-title"
@@ -18,7 +18,7 @@ export default function CartActivationModal() {
         <button
           type="button"
           onClick={closeCartModal}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 sm:right-4 sm:top-4"
           aria-label="Cerrar"
         >
           <X className="h-5 w-5" />
@@ -26,7 +26,7 @@ export default function CartActivationModal() {
 
         <h2
           id="cart-modal-title"
-          className="pr-8 text-2xl font-bold leading-tight tracking-tight text-brand-night"
+          className="pr-10 text-xl font-bold leading-tight tracking-tight text-brand-night sm:pr-8 sm:text-2xl"
         >
           ¡Activa tu carrito con ${DEPOSIT_AMOUNT}!
         </h2>

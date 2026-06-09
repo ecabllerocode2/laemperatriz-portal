@@ -4,6 +4,24 @@ import { submitDepositReceipt, uploadDepositReceipt } from "@/lib/portal-profile
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+
+function normalizeContentType(file: File): string {
+  if (file.type && ALLOWED_TYPES.has(file.type)) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (ext === "heic" || ext === "heif") return "image/heic";
+  return "image/jpeg";
+}
+
 export default function ReceiptUploadModal() {
   const { user } = useAuthStore();
   const { showReceiptModal, closeReceiptModal, setToast, resetValidationDismiss } = useUiStore();
@@ -17,6 +35,10 @@ export default function ReceiptUploadModal() {
 
   const handleFileChange = (selected: File | null) => {
     setError(null);
+    if (selected && selected.size > 8 * 1024 * 1024) {
+      setError("La imagen es muy grande. Máximo 8 MB.");
+      return;
+    }
     setFile(selected);
     if (preview) URL.revokeObjectURL(preview);
     setPreview(selected ? URL.createObjectURL(selected) : null);
@@ -32,7 +54,8 @@ export default function ReceiptUploadModal() {
     setError(null);
 
     try {
-      const receiptUrl = await uploadDepositReceipt(user.uid, file);
+      const normalized = new File([file], file.name, { type: normalizeContentType(file) });
+      const receiptUrl = await uploadDepositReceipt(user.uid, normalized);
       await submitDepositReceipt(user.uid, receiptUrl);
       closeReceiptModal();
       resetValidationDismiss();
@@ -40,26 +63,31 @@ export default function ReceiptUploadModal() {
       setFile(null);
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
-    } catch {
-      setError("No pudimos subir el comprobante. Intenta de nuevo.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error desconocido";
+      setError(
+        message.includes("Failed to fetch") || message.includes("NetworkError")
+          ? "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo."
+          : "No pudimos subir el comprobante. Intenta de nuevo.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[55] flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div className="relative w-full max-w-md rounded-3xl bg-white px-6 pb-6 pt-8 shadow-2xl">
+    <div className="fixed inset-0 z-[55] flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4">
+      <div className="modal-sheet animate-sheet-up relative w-full max-w-md rounded-t-3xl bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-7 shadow-2xl sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-8">
         <button
           type="button"
           onClick={closeReceiptModal}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 sm:right-4 sm:top-4"
           aria-label="Cerrar"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-xl font-bold text-brand-night">Sube tu comprobante</h2>
+        <h2 className="text-lg font-bold text-brand-night sm:text-xl">Sube tu comprobante</h2>
         <p className="mt-2 text-sm text-neutral-600">
           Captura o selecciona la imagen de tu transferencia de $200.
         </p>
@@ -68,6 +96,7 @@ export default function ReceiptUploadModal() {
           ref={inputRef}
           type="file"
           accept="image/*"
+          capture="environment"
           className="hidden"
           onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
         />
@@ -75,10 +104,14 @@ export default function ReceiptUploadModal() {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 py-10 transition hover:border-brand-red/40 hover:bg-red-50/30"
+          className="mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 px-4 py-8 transition hover:border-brand-red/40 hover:bg-red-50/30 sm:py-10"
         >
           {preview ? (
-            <img src={preview} alt="Vista previa del comprobante" className="max-h-48 rounded-lg object-contain" />
+            <img
+              src={preview}
+              alt="Vista previa del comprobante"
+              className="max-h-40 w-full rounded-lg object-contain sm:max-h-48"
+            />
           ) : (
             <>
               <ImagePlus className="h-10 w-10 text-neutral-400" strokeWidth={1.5} />
@@ -87,9 +120,7 @@ export default function ReceiptUploadModal() {
           )}
         </button>
 
-        {error ? (
-          <p className="mt-3 text-sm text-brand-red">{error}</p>
-        ) : null}
+        {error ? <p className="mt-3 text-sm text-brand-red">{error}</p> : null}
 
         <button
           type="button"

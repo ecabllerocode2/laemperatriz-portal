@@ -5,13 +5,20 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
+import { apiRequest } from "@/lib/api";
+import { uploadToR2 } from "@/lib/r2";
 import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
 
 export const DEPOSIT_AMOUNT = 200;
 
 const profileRef = (uid: string) => doc(db, "portal_profiles", uid);
+
+interface UploadUrlResponse {
+  uploadUrl: string;
+  key: string;
+  publicUrl: string;
+}
 
 export async function getPortalProfile(uid: string): Promise<PortalProfileDoc | null> {
   const snap = await getDoc(profileRef(uid));
@@ -34,10 +41,17 @@ export async function createPortalProfile(
 }
 
 export async function uploadDepositReceipt(uid: string, file: File): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const objectRef = ref(storage, `deposit-receipts/${uid}/${Date.now()}.${ext}`);
-  await uploadBytes(objectRef, file);
-  return getDownloadURL(objectRef);
+  const contentType = file.type || "image/jpeg";
+  const { uploadUrl, publicUrl } = await apiRequest<UploadUrlResponse>(
+    "/api/portal/deposit-receipt/upload-url",
+    {
+      method: "POST",
+      body: JSON.stringify({ filename: file.name, contentType }),
+    },
+  );
+
+  await uploadToR2(uploadUrl, file);
+  return publicUrl;
 }
 
 export async function submitDepositReceipt(uid: string, receiptUrl: string): Promise<void> {
