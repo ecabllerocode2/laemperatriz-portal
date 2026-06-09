@@ -1,0 +1,15 @@
+{
+  "name": "laemperatriz-portal",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@11.1.0",
+  "scripts": {
+    "dev": "pnpm --filter @emperatriz/portal dev",
+    "build": "pnpm --filter @emperatriz/portal build",
+    "type-check": "pnpm --filter @emperatriz/portal type-check",
+    "preview": "pnpm --filter @emperatriz/portal preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

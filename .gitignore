@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+build
+.turbo
+*.tsbuildinfo
+
+# Env files
+.env
+.env.local
+.env.*.local
+.env.vercel
+
+# Editor
+.vscode/settings.json
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Vercel
+.vercel

@@ -1,0 +1,445 @@
+import type { Timestamp } from "firebase/firestore";
+
+// ─── Roles ────────────────────────────────────────────────────────────────────
+
+export type UserRole = "admin" | "seller" | "client";
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+export type UserStatus = "pending" | "active" | "disabled";
+
+export interface User {
+  uid: string;
+  name: string;
+  email: string;
+  role: UserRole | null;  // null = pending approval
+  status: UserStatus;
+  whatsapp?: string;
+  /** Vinculación con registro CRM — solo cuando role === "client". */
+  customerId?: string;
+  fcmTokens: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Customer ─────────────────────────────────────────────────────────────────
+
+export type CustomerStatus = "vip" | "regular" | "at_risk" | "inactive" | "new";
+
+/**
+ * Business classification (distinct from the recency `status` semaphore).
+ * - `new`: aún no completa su primer ciclo / no acumula el umbral.
+ * - `frequent`: ya superó el umbral o pagó su envío de penalización.
+ */
+export type CustomerTier = "new" | "frequent";
+
+export interface Customer {
+  id: string;
+  name: string;
+  /** Format: +521XXXXXXXXXX (E.164). Unique identifier. */
+  whatsapp: string;
+  /** Correo de acceso al portal (opcional hasta activar cuenta). */
+  email?: string;
+  /** UID de Firebase Auth vinculado al portal. */
+  authUid?: string;
+  status: CustomerStatus;
+  /** Clasificación de negocio para el flujo de Lives. */
+  tier: CustomerTier;
+  /** Ciclo de compras abierto actualmente (si existe). */
+  activeCycleId?: string;
+  lastPurchaseAt?: Timestamp;
+  totalSpent: number;
+  birthday?: string; // ISO YYYY-MM-DD
+  shippingAddress?: string;
+  notes?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Category ─────────────────────────────────────────────────────────────────
+
+export interface Category {
+  id: string;
+  name: string;
+  createdAt: Timestamp;
+}
+
+// ─── Product ──────────────────────────────────────────────────────────────────
+
+export interface ProductImage {
+  url: string;
+  key: string;
+  order: number;
+}
+
+export interface Product {
+  id: string;
+  /** Format: EMP-[CAT3]-[0000] */
+  sku: string;
+  name: string;
+  description?: string;
+  categoryId: string;
+  images: ProductImage[];
+  /** Visible only for admin role */
+  cost: number;
+  price: number;
+  stock: number;
+  stockAlertThreshold: number;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Sales Note ───────────────────────────────────────────────────────────────
+
+/**
+ * Canal de captura de la nota. Define el color y la elegibilidad de pronto pago:
+ * - `whatsapp` (verde) y `facebook` (azul): elegibles para descuento de pronto pago.
+ * - `no_discount` (naranja): nunca recibe descuento de pronto pago.
+ */
+export type SaleChannel = "whatsapp" | "facebook" | "no_discount";
+
+/**
+ * Estado de pago de la nota/ticket diario dentro de un ciclo.
+ * - `pending_payment`: ticket generado, corre el temporizador de 24h.
+ * - `paid_early`: pagada dentro de 24h con descuento de pronto pago aplicado.
+ * - `paid_late`: pagada fuera de 24h (o canal naranja) sin descuento.
+ * - `cancelled`: nota cancelada, stock devuelto.
+ */
+export type SaleNoteStatus = "pending_payment" | "paid_early" | "paid_late" | "cancelled";
+
+export interface SaleNoteItem {
+  productId: string;
+  sku: string;
+  name: string;
+  imageUrl?: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+/**
+ * Registro de un pago (parcial o total) sobre una nota.
+ */
+export interface NotePayment {
+  id: string;
+  amount: number;
+  paidAt: Timestamp;
+  /** Notas opcionales del admin sobre este pago. */
+  note?: string;
+}
+
+export interface SaleNote {
+  id: string;
+  customerId: string;
+  /** Ciclo de compras al que pertenece esta nota. */
+  cycleId: string;
+  /** Canal/color de la nota. */
+  channel: SaleChannel;
+  items: SaleNoteItem[];
+  subtotal: number;
+  /** ¿La nota puede recibir descuento de pronto pago? (false si canal naranja) */
+  earlyPayEligible: boolean;
+  /** Límite para pagar y conservar el descuento de pronto pago. */
+  earlyPayDeadline?: Timestamp;
+  /** Porcentaje de descuento de pronto pago efectivamente aplicado (0 si no aplica). */
+  earlyPayDiscountPercent: number;
+  /** Descuento monetario aplicado. */
+  discount: number;
+  /** Total a pagar (subtotal - discount). */
+  total: number;
+  status: SaleNoteStatus;
+  /** Historial de pagos parciales o totales recibidos. */
+  payments: NotePayment[];
+  /** Suma de todos los pagos recibidos hasta ahora. */
+  paidAmount: number;
+  /**
+   * Si es la primera nota del ciclo, el depósito inicial se acredita aquí.
+   * Este valor ya fue contado en cycle.netAccumulated al confirmar el depósito,
+   * por lo que no se vuelve a sumar al cerrar la nota.
+   */
+  depositCredit?: number;
+  deliveryNotes?: string;
+  /** Timestamp del último pago que liquidó la nota. */
+  paidAt?: Timestamp;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Cycle (ciclo de compras de 7 días) ─────────────────────────────────────────
+
+/**
+ * Estados del ciclo de venta por Lives. Ver máquina de estados en el SDD/flujo.
+ */
+/**
+ * Un item de mercancía dentro del cálculo de penalización frecuente.
+ * Puede ser una fracción (cantidad parcial) del item original de la nota.
+ */
+export interface PenaltyItem {
+  productId: string;
+  sku: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  /** ID de la nota de origen (para referencia). */
+  noteId: string;
+}
+
+export type CycleStatus =
+  | "awaiting_deposit" // esperando confirmación del depósito de $200
+  | "active"           // carrito activo, ventana de 7 días corriendo
+  | "closing_new"      // día 7, cliente Nueva: se evalúa el umbral
+  | "penalty_new"      // Nueva que no acumuló: debe pagar envío de penalización
+  | "closing_freq"     // día 7, cliente Frecuente: se aplica tabulación, plazo día 8
+  | "penalty_freq"     // Frecuente que no liquidó al día 8: ajuste -30%
+  | "settled"          // liquidado correctamente
+  | "restocked"        // mercancía devuelta a disponible (Nueva que no pagó)
+  | "forfeited";       // mercancía liberada + depósito retenido por la empresa
+
+export type CycleOutcome = "upgraded" | "settled" | "restocked" | "forfeited";
+
+export interface Cycle {
+  id: string;
+  customerId: string;
+  /** Datos denormalizados para el panel de tareas y links de WhatsApp. */
+  customerName: string;
+  customerWhatsapp: string;
+  /** Tier del cliente al abrir el ciclo. */
+  tier: CustomerTier;
+  status: CycleStatus;
+  depositAmount: number;
+  depositConfirmedAt?: Timestamp;
+  opensAt?: Timestamp;
+  /** opensAt + purchaseWindowDays (fin de la ventana de compra). */
+  purchaseWindowEndsAt?: Timestamp;
+  /** Frecuente: purchaseWindowEndsAt + 24h (octavo día). */
+  settlementDueAt?: Timestamp;
+  noteIds: string[];
+  /** Suma de los totales de notas pagadas en el ciclo. */
+  grossAccumulated: number;
+  /** Acumulado neto que cuenta para el umbral (incluye el depósito). */
+  netAccumulated: number;
+  freeShippingEarned: boolean;
+  shippingCost: number;
+  penaltyApplied?: boolean;
+  penaltyPercent?: number;
+  /** Costo de envío de penalización descontado en mercancía. */
+  penaltyShipping?: number;
+  /** Total monetario que corresponde a la mercancía que SÍ se envía. */
+  adjustedTotal?: number;
+  /**
+   * Items que SÍ se envían a la clienta (los más antiguos que caben dentro del
+   * monto ajustado). Guardados para la confirmación y para la exportación.
+   */
+  penaltyKeptItems?: PenaltyItem[];
+  /**
+   * Items que REGRESAN al stock (los más recientes / el excedente).
+   * Se restockean solo cuando la clienta aprueba.
+   */
+  penaltyReturnedItems?: PenaltyItem[];
+  outcome?: CycleOutcome;
+  closedAt?: Timestamp;
+  /** Estado del envío físico (solo para ciclos liquidados). */
+  shippingStatus?: "preparing" | "shipped" | "delivered";
+  shippedAt?: Timestamp;
+  deliveredAt?: Timestamp;
+  /** Nota libre del admin sobre el envío (número de guía, transportista, etc.). */
+  trackingNote?: string;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Customer Action ──────────────────────────────────────────────────────────
+
+export type ActionType =
+  | "collection_reminder"
+  | "shipping_confirmation"
+  | "delivery_followup"
+  | "reactivation"
+  | "satisfaction_followup";
+
+export interface CustomerAction {
+  id: string;
+  customerId: string;
+  saleNoteId?: string;
+  actionType: ActionType;
+  aiMessage?: string;
+  performedAt: Timestamp;
+  performedBy: string;
+  nextActionAt?: Timestamp;
+}
+
+// ─── Notification ─────────────────────────────────────────────────────────────
+
+export type NotificationType =
+  | "low_stock"
+  | "new_sale"
+  | "payment_received"
+  | "action_reminder";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  read: boolean;
+  relatedId?: string;
+  createdAt: Timestamp;
+}
+
+// ─── Business Rules (configurables por el admin) ───────────────────────────────
+
+export interface ShippingTier {
+  /** Total mínimo del ciclo (inclusive). */
+  minTotal: number;
+  /** Total máximo del ciclo (inclusive). Usa null para "sin límite". */
+  maxTotal: number | null;
+  /** Costo de envío para ese rango. */
+  cost: number;
+}
+
+export interface BusinessRules {
+  /** Depósito requerido para activar el carrito (por ciclo). */
+  depositAmount: number;
+  /** % de descuento de pronto pago (pago dentro de la ventana). */
+  earlyPayDiscountPercent: number;
+  /** Ventana de pronto pago en horas (24 por defecto). */
+  earlyPayWindowHours: number;
+  /** Duración de la ventana de compra del ciclo en días (7 por defecto). */
+  purchaseWindowDays: number;
+  /** Umbral neto para que una cliente Nueva suba a Frecuente + envío gratis. */
+  newTierThreshold: number;
+  /** Costo de envío de penalización para Nueva que no alcanza el umbral. */
+  newTierPenaltyShipping: number;
+  /** % de descuento sobre mercancía antigua si Frecuente no liquida al día 8. */
+  frequentLatePenaltyPercent: number;
+  /** Costo de envío de penalización que se descuenta en mercancía (no en dinero). */
+  frequentPenaltyShipping: number;
+  /** Tabulación de envíos para clientes Frecuentes (por rango de total). */
+  shippingTab: ShippingTier[];
+  updatedAt?: Timestamp;
+  updatedBy?: string;
+}
+
+// ─── Task (panel de tareas accionables) ─────────────────────────────────────────
+
+export type TaskType =
+  | "confirm_deposit"      // confirmar depósito para activar carrito
+  | "collect_early_pay"    // cobrar nota antes de que venza el pronto pago
+  | "close_cycle"          // cerrar ciclo (venció la ventana de 7 días)
+  | "collect_penalty_ship" // Nueva: cobrar envío $150 o devolver stock
+  | "settle_freq"          // Frecuente: cobrar saldo + envío (día 8)
+  | "resolve_penalty_freq"; // Frecuente: aprobar ajuste -30% o decomisar
+
+export type TaskPriority = "urgent" | "soon" | "normal";
+
+export interface Task {
+  id: string;
+  type: TaskType;
+  priority: TaskPriority;
+  title: string;
+  description: string;
+  customerId: string;
+  customerName: string;
+  customerWhatsapp: string;
+  cycleId?: string;
+  saleNoteId?: string;
+  /** Marca de tiempo (ms epoch) del vencimiento, para ordenar por urgencia. */
+  dueAt?: number;
+  /** Texto humano del vencimiento (ej. "vence en 3h"). */
+  dueLabel?: string;
+  /** Datos auxiliares para la UI (montos, acumulado, etc.). */
+  meta?: Record<string, number | string | boolean>;
+}
+
+// ─── API Response ─────────────────────────────────────────────────────────────
+
+export interface ApiSuccess<T> {
+  success: true;
+  data: T;
+}
+
+export interface ApiError {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+  };
+}
+
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export interface AuthUser {
+  uid: string;
+  email: string;
+  role: UserRole | null;  // null = pending (no role assigned yet)
+  name: string;
+  customerId?: string;
+}
+
+// ─── Portal (respuestas sanitizadas para clientes) ────────────────────────────
+
+/** Perfil visible para la clienta en el portal. */
+export interface PortalProfile {
+  id: string;
+  name: string;
+  whatsapp: string;
+  tier: CustomerTier;
+  status: CustomerStatus;
+  totalSpent: number;
+  lastPurchaseAt?: Timestamp;
+}
+
+/** Nota de venta sin campos internos de staff. */
+export interface PortalSaleNote {
+  id: string;
+  cycleId: string;
+  channel: SaleChannel;
+  items: SaleNoteItem[];
+  subtotal: number;
+  earlyPayEligible: boolean;
+  earlyPayDeadline?: Timestamp;
+  earlyPayDiscountPercent: number;
+  discount: number;
+  total: number;
+  status: SaleNoteStatus;
+  paidAmount: number;
+  paidAt?: Timestamp;
+  createdAt: Timestamp;
+  /** ms restantes para pronto pago (0 si vencido o no aplica). */
+  earlyPayRemainingMs?: number;
+}
+
+/** Ciclo visible para la clienta (sin datos de penalización interna). */
+export interface PortalCycle {
+  id: string;
+  tier: CustomerTier;
+  status: CycleStatus;
+  depositAmount: number;
+  depositConfirmedAt?: Timestamp;
+  opensAt?: Timestamp;
+  purchaseWindowEndsAt?: Timestamp;
+  settlementDueAt?: Timestamp;
+  grossAccumulated: number;
+  netAccumulated: number;
+  freeShippingEarned: boolean;
+  shippingCost: number;
+  shippingStatus?: Cycle["shippingStatus"];
+  /** ms restantes de la ventana de compra. */
+  purchaseWindowRemainingMs?: number;
+  /** ms restantes para liquidación (frecuente, día 8). */
+  settlementRemainingMs?: number;
+  notes: PortalSaleNote[];
+}
+
+export interface PortalNotesPage {
+  notes: PortalSaleNote[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
