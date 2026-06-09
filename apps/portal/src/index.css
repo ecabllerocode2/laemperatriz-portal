@@ -1,14 +1,19 @@
-@import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap");
+@import "tailwindcss";
 
 @theme {
   --color-brand-red: #C8102E;
   --color-brand-red-dark: #9B0D22;
   --color-brand-gold: #C9A84C;
   --color-brand-night: #1A1A2E;
+  --color-neutral-pearl: #FFFFFF;
+  --color-neutral-silver: #555555;
   --color-neutral-silk: #F7F7F7;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Playfair Display", Georgia, serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
 * {
@@ -28,7 +33,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-neutral-silk);
+  background-color: var(--color-neutral-pearl);
   color: var(--color-brand-night);
   line-height: 1.5;
   margin: 0;
@@ -44,4 +49,19 @@ a,
 :focus-visible {
   outline: 2px solid var(--color-brand-red);
   outline-offset: 2px;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.25s ease-out;
 }
