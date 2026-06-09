@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
-import { submitDepositReceipt, uploadDepositReceipt } from "@/lib/portal-profile";
+import { uploadDepositReceipt } from "@/lib/portal-profile";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 
@@ -36,8 +36,8 @@ export default function ReceiptUploadModal() {
 
   const handleFileChange = (selected: File | null) => {
     setError(null);
-    if (selected && selected.size > 8 * 1024 * 1024) {
-      setError("La imagen es muy grande. Máximo 8 MB.");
+    if (selected && selected.size > 3 * 1024 * 1024) {
+      setError("La imagen es muy grande. Máximo 3 MB.");
       return;
     }
     setFile(selected);
@@ -56,8 +56,7 @@ export default function ReceiptUploadModal() {
 
     try {
       const normalized = new File([file], file.name, { type: normalizeContentType(file) });
-      const receiptUrl = await uploadDepositReceipt(normalized);
-      await submitDepositReceipt(receiptUrl);
+      await uploadDepositReceipt(normalized);
       bumpProfileReload();
       closeReceiptModal();
       resetValidationDismiss();

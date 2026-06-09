@@ -3,17 +3,20 @@ import { getAuth } from "firebase/auth";
 
 const API_URL = import.meta.env["VITE_API_URL"] || "";
 
-export async function apiRequest<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-  let token = useAuthStore.getState().token;
+async function getAuthToken(): Promise<string | undefined> {
+  let token = useAuthStore.getState().token ?? undefined;
   if (!token) {
     const firebaseUser = getAuth().currentUser;
-    if (firebaseUser) {
-      token = await firebaseUser.getIdToken();
-    }
+    if (firebaseUser) token = await firebaseUser.getIdToken();
   }
+  return token;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = await getAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
