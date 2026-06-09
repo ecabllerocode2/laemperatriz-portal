@@ -5,7 +5,9 @@ interface UiState {
   showCartModal: boolean;
   showReceiptModal: boolean;
   dismissValidationBanner: boolean;
+  profileReloadTick: number;
   setToast: (message: string | null) => void;
+  bumpProfileReload: () => void;
   openCartModal: () => void;
   closeCartModal: () => void;
   openReceiptModal: () => void;
@@ -20,7 +22,11 @@ export const useUiStore = create<UiState>((set) => ({
   showReceiptModal: false,
   dismissValidationBanner: false,
 
+  profileReloadTick: 0,
+
   setToast: (toast) => set({ toast }),
+  bumpProfileReload: () =>
+    set((state) => ({ profileReloadTick: state.profileReloadTick + 1 })),
   openCartModal: () => set({ showCartModal: true }),
   closeCartModal: () => set({ showCartModal: false }),
   openReceiptModal: () => set({ showReceiptModal: true, showCartModal: false }),

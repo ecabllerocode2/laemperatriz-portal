@@ -7,7 +7,6 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { Lock, Mail, MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
 import { auth } from "@/lib/firebase";
-import { createPortalProfile } from "@/lib/portal-profile";
 import { linkPortalCustomer } from "@/lib/portal-customer";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -55,12 +54,6 @@ export default function RegisterPage() {
     try {
       const credential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await updateProfile(credential.user, { displayName: data.name });
-      await createPortalProfile(credential.user.uid, {
-        email: data.email,
-        name: data.name,
-        phone: data.phone,
-        postalCode: data.postalCode,
-      });
       await linkPortalCustomer({
         name: data.name,
         phone: data.phone,
@@ -69,7 +62,7 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
       if (code === "auth/email-already-in-use") {
-        setServerError("Ya existe una cuenta con ese correo. Inicia sesión.");
+        setServerError("Ya existe una cuenta con ese correo. Inicia sesión para completar tu registro.");
       } else if (code === "auth/weak-password") {
         setServerError("La contraseña es muy débil.");
       } else {

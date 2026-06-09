@@ -24,7 +24,8 @@ function normalizeContentType(file: File): string {
 
 export default function ReceiptUploadModal() {
   const { user } = useAuthStore();
-  const { showReceiptModal, closeReceiptModal, setToast, resetValidationDismiss } = useUiStore();
+  const { showReceiptModal, closeReceiptModal, setToast, resetValidationDismiss, bumpProfileReload } =
+    useUiStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -55,8 +56,9 @@ export default function ReceiptUploadModal() {
 
     try {
       const normalized = new File([file], file.name, { type: normalizeContentType(file) });
-      const receiptUrl = await uploadDepositReceipt(user.uid, normalized);
-      await submitDepositReceipt(user.uid, receiptUrl);
+      const receiptUrl = await uploadDepositReceipt(normalized);
+      await submitDepositReceipt(receiptUrl);
+      bumpProfileReload();
       closeReceiptModal();
       resetValidationDismiss();
       setToast("Comprobante enviado. Lo estamos validando.");

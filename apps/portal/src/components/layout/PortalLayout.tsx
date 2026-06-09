@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import CartActivationModal from "@/components/cart/CartActivationModal";
 import ReceiptUploadModal from "@/components/cart/ReceiptUploadModal";
 import BottomNav from "@/components/layout/BottomNav";
@@ -15,11 +15,19 @@ function firstNameFrom(fullName: string): string {
 
 export default function PortalLayout() {
   const { user } = useAuthStore();
-  const { profile } = usePortalProfile(user?.uid);
+  const { profile, isLoading } = usePortalProfile(user?.uid);
   const { openCartModal, showCartModal } = useUiStore();
+  const navigate = useNavigate();
 
   const depositStatus = profile?.depositStatus ?? "none";
   const displayName = profile?.name || user?.name || "Clienta";
+
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (!profile) {
+      navigate("/completar-registro", { replace: true });
+    }
+  }, [isLoading, user, profile, navigate]);
 
   useEffect(() => {
     if (!profile || depositStatus !== "none") return;

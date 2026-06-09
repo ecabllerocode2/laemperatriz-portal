@@ -1,17 +1,15 @@
 import { useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { fetchPortalProfile } from "@/lib/portal-profile";
 import { linkPortalCustomer } from "@/lib/portal-customer";
 import { useAuthStore } from "@/stores/auth.store";
 import type { AuthUser, UserRole } from "@emperatriz/types";
-import type { PortalProfileDoc } from "@/types/portal-profile";
 
-async function ensureCustomerLinked(uid: string): Promise<string | undefined> {
-  const snap = await getDoc(doc(db, "portal_profiles", uid));
-  if (!snap.exists()) return undefined;
+async function ensureCustomerLinked(): Promise<string | undefined> {
+  const profile = await fetchPortalProfile();
+  if (!profile?.name || !profile.phone || !profile.postalCode) return undefined;
 
-  const profile = snap.data() as PortalProfileDoc;
   try {
     return await linkPortalCustomer({
       name: profile.name,
@@ -38,7 +36,7 @@ export function useAuthSync() {
         let customerId = idTokenResult.claims["customerId"] as string | undefined;
 
         if (!customerId) {
-          const linkedId = await ensureCustomerLinked(firebaseUser.uid);
+          const linkedId = await ensureCustomerLinked();
           if (linkedId) {
             idTokenResult = await firebaseUser.getIdTokenResult(true);
             customerId = linkedId;
