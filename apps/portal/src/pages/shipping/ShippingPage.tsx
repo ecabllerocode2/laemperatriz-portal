@@ -19,8 +19,16 @@ interface PortalContext {
 export default function ShippingPage() {
   const { depositStatus } = useOutletContext<PortalContext>();
   const cartActive = depositStatus === "approved";
-  const { active, history, loading, error, reload } = usePortalShipments(cartActive);
-  const { openReceiptModal, bumpProfileReload } = useUiStore();
+  const {
+    active,
+    history,
+    needsShippingAddress,
+    shippingAddress,
+    loading,
+    error,
+    reload,
+  } = usePortalShipments(cartActive);
+  const { openReceiptModal, bumpProfileReload, openShippingAddressModal } = useUiStore();
   const [detailCycle, setDetailCycle] = useState<PortalCycle | null>(null);
   const [confirming, setConfirming] = useState(false);
 
@@ -41,6 +49,7 @@ export default function ShippingPage() {
       await confirmFreeSettlement();
       bumpProfileReload();
       await reload();
+      openShippingAddressModal();
     } finally {
       setConfirming(false);
     }
@@ -52,6 +61,38 @@ export default function ShippingPage() {
 
       {shipment?.liquidationAlerts?.length ? (
         <LiquidationAlertsBanner alerts={shipment.liquidationAlerts} />
+      ) : null}
+
+      {cartActive && needsShippingAddress ? (
+        <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 shadow-sm">
+          <h3 className="text-sm font-bold text-amber-900">Falta tu dirección de envío</h3>
+          <p className="mt-1 text-sm text-amber-900/90">
+            Captúrala para que podamos armar tu paquete y generar la guía.
+          </p>
+          <button
+            type="button"
+            onClick={openShippingAddressModal}
+            className="mt-3 rounded-xl bg-brand-night px-4 py-2.5 text-sm font-semibold text-white"
+          >
+            Capturar dirección
+          </button>
+        </section>
+      ) : cartActive && shippingAddress ? (
+        <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-brand-night">Dirección de envío</h3>
+              <p className="mt-1 text-sm text-neutral-600">{shippingAddress}</p>
+            </div>
+            <button
+              type="button"
+              onClick={openShippingAddressModal}
+              className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-brand-night hover:bg-neutral-50"
+            >
+              Editar
+            </button>
+          </div>
+        </section>
       ) : null}
 
       <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5">

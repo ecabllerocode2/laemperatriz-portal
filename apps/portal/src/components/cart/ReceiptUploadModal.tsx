@@ -37,6 +37,7 @@ export default function ReceiptUploadModal() {
     setToast,
     resetValidationDismiss,
     bumpProfileReload,
+    openShippingAddressModal,
   } = useUiStore();
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -76,7 +77,14 @@ export default function ReceiptUploadModal() {
       bumpProfileReload();
       closeReceiptModal();
       resetValidationDismiss();
-      setToast("Comprobante enviado. Lo estamos validando.");
+      if (receiptModalOptions.purpose === "shipping") {
+        openShippingAddressModal();
+      }
+      setToast(
+        receiptModalOptions.purpose === "shipping"
+          ? "Comprobante enviado. Ahora confirma tu dirección de envío."
+          : "Comprobante enviado. Lo estamos validando.",
+      );
       setFile(null);
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);

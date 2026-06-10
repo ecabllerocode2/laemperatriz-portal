@@ -8,6 +8,7 @@ interface UiState {
   toast: string | null;
   showCartModal: boolean;
   showReceiptModal: boolean;
+  showShippingAddressModal: boolean;
   receiptModalOptions: ReceiptModalOptions;
   dismissValidationBanner: boolean;
   profileReloadTick: number;
@@ -18,6 +19,8 @@ interface UiState {
   openReceiptModal: (options?: Partial<ReceiptModalOptions>) => void;
   closeReceiptModal: () => void;
   backFromReceiptModal: () => void;
+  openShippingAddressModal: () => void;
+  closeShippingAddressModal: () => void;
   dismissValidation: () => void;
   resetValidationDismiss: () => void;
 }
@@ -26,6 +29,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   toast: null,
   showCartModal: false,
   showReceiptModal: false,
+  showShippingAddressModal: false,
   receiptModalOptions: DEFAULT_RECEIPT_MODAL_OPTIONS,
   dismissValidationBanner: false,
 
@@ -46,6 +50,8 @@ export const useUiStore = create<UiState>((set, get) => ({
       },
     }),
   closeReceiptModal: () => set({ showReceiptModal: false }),
+  openShippingAddressModal: () => set({ showShippingAddressModal: true }),
+  closeShippingAddressModal: () => set({ showShippingAddressModal: false }),
   backFromReceiptModal: () => {
     const purpose = get().receiptModalOptions.purpose;
     if (purpose === "cart") {

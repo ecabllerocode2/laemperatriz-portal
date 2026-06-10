@@ -12,6 +12,7 @@ import { useUiStore } from "@/stores/ui.store";
 
 interface ShippingAddressModalProps {
   open: boolean;
+  required?: boolean;
   defaultPostalCode?: string;
   initial?: Partial<ShippingAddressDetail> | null;
   onClose?: () => void;
@@ -20,6 +21,7 @@ interface ShippingAddressModalProps {
 
 export default function ShippingAddressModal({
   open,
+  required = false,
   defaultPostalCode = "",
   initial,
   onClose,
@@ -95,21 +97,24 @@ export default function ShippingAddressModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4">
       <div className="modal-sheet animate-sheet-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-7 shadow-2xl sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-8">
-        <button
-          type="button"
-          onClick={onClose ?? onSaved}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
-          aria-label="Cerrar"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {!required ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+            aria-label="Cerrar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        ) : null}
 
-        <h2 className="pr-8 font-display text-xl font-bold text-brand-night sm:text-2xl">
+        <h2 className={`font-display text-xl font-bold text-brand-night sm:text-2xl ${required ? "" : "pr-8"}`}>
           Dirección de envío
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-          Ya validamos tu depósito. Indica el domicilio completo donde entregaremos tus compras de
-          este ciclo de envío.
+          {required
+            ? "Para armar tu paquete y generar la guía necesitamos el domicilio completo de entrega. Revisa los datos y confirma."
+            : "Actualiza el domicilio donde entregaremos tus compras de este ciclo."}
         </p>
 
         <div className="mt-5 space-y-4">

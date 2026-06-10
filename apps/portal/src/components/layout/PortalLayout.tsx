@@ -21,7 +21,12 @@ function firstNameFrom(fullName: string): string {
 export default function PortalLayout() {
   const { user } = useAuthStore();
   const { profile, isLoading } = usePortalProfile(user?.uid);
-  const { openCartModal, showCartModal } = useUiStore();
+  const {
+    openCartModal,
+    showCartModal,
+    showShippingAddressModal,
+    closeShippingAddressModal,
+  } = useUiStore();
   const navigate = useNavigate();
 
   const depositStatus = profile?.depositStatus ?? "none";
@@ -29,16 +34,12 @@ export default function PortalLayout() {
   const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle(
     depositStatus === "approved",
   );
-  const [addressDismissed, setAddressDismissed] = useState(false);
   const [showPwaInstall, setShowPwaInstall] = useState(false);
   const { shouldOfferInstall, isIos, isAndroid, canNativeInstall, install, dismiss } =
     usePwaInstall();
 
-  const showAddressModal = needsShippingAddress && !addressDismissed;
-
-  useEffect(() => {
-    if (needsShippingAddress) setAddressDismissed(false);
-  }, [needsShippingAddress]);
+  const addressRequired = needsShippingAddress;
+  const showAddressModal = addressRequired || showShippingAddressModal;
 
   useEffect(() => {
     if (isLoading || !user) return;
@@ -96,10 +97,12 @@ export default function PortalLayout() {
       <ReceiptUploadModal />
       <ShippingAddressModal
         open={showAddressModal}
+        required={addressRequired}
         defaultPostalCode={profile?.postalCode ?? ""}
         initial={shippingAddressDetail ?? null}
+        onClose={() => closeShippingAddressModal()}
         onSaved={() => {
-          setAddressDismissed(true);
+          closeShippingAddressModal();
           void reloadCycle();
         }}
       />

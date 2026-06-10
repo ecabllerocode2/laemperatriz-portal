@@ -18,7 +18,7 @@ export default function PenaltyDecisionModal({
 }: PenaltyDecisionModalProps) {
   const [submitting, setSubmitting] = useState<"accept" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const bumpProfileReload = useUiStore((s) => s.bumpProfileReload);
+  const { bumpProfileReload, openShippingAddressModal } = useUiStore();
 
   const handleAccept = async () => {
     setSubmitting("accept");
@@ -26,6 +26,7 @@ export default function PenaltyDecisionModal({
     try {
       await acceptPenalty();
       bumpProfileReload();
+      openShippingAddressModal();
       onResolved();
       onClose();
     } catch (err: unknown) {
