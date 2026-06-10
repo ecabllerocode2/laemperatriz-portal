@@ -4,8 +4,10 @@ import CartActivationModal from "@/components/cart/CartActivationModal";
 import ReceiptUploadModal from "@/components/cart/ReceiptUploadModal";
 import BottomNav from "@/components/layout/BottomNav";
 import PortalHeader from "@/components/layout/PortalHeader";
+import PwaInstallModal from "@/components/pwa/PwaInstallModal";
 import ShippingAddressModal from "@/components/shipping/ShippingAddressModal";
 import Toast from "@/components/ui/Toast";
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { usePortalCycle } from "@/hooks/usePortalCycle";
 import { usePortalProfile } from "@/hooks/usePortalProfile";
 import { useAuthStore } from "@/stores/auth.store";
@@ -27,6 +29,8 @@ export default function PortalLayout() {
     depositStatus === "approved",
   );
   const [addressDismissed, setAddressDismissed] = useState(false);
+  const [showPwaInstall, setShowPwaInstall] = useState(false);
+  const { shouldOfferInstall, isIos, canNativeInstall, install, dismiss } = usePwaInstall();
 
   const showAddressModal = needsShippingAddress && !addressDismissed;
 
@@ -46,6 +50,14 @@ export default function PortalLayout() {
     if (!showCartModal) openCartModal();
   }, [profile, depositStatus, showCartModal, openCartModal]);
 
+  useEffect(() => {
+    if (!profile || !shouldOfferInstall) return;
+    if (showCartModal || showAddressModal) return;
+
+    const timer = window.setTimeout(() => setShowPwaInstall(true), 1500);
+    return () => window.clearTimeout(timer);
+  }, [profile, shouldOfferInstall, showCartModal, showAddressModal]);
+
   return (
     <div className="min-h-dvh bg-neutral-silk pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
       <PortalHeader firstName={firstNameFrom(displayName)} />
@@ -63,6 +75,14 @@ export default function PortalLayout() {
           setAddressDismissed(true);
           void reloadCycle();
         }}
+      />
+      <PwaInstallModal
+        open={showPwaInstall}
+        isIos={isIos}
+        canNativeInstall={canNativeInstall}
+        onInstall={install}
+        onDismiss={dismiss}
+        onClose={() => setShowPwaInstall(false)}
       />
       <Toast />
     </div>

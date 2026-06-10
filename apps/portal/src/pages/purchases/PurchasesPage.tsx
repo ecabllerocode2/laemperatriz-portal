@@ -8,7 +8,6 @@ import CycleTimers from "@/components/purchases/CycleTimers";
 import NoteCard from "@/components/purchases/NoteCard";
 import NoteItemsModal from "@/components/purchases/NoteItemsModal";
 import PenaltyDecisionModal from "@/components/purchases/PenaltyDecisionModal";
-import LiquidationAlertsBanner from "@/components/shipping/LiquidationAlertsBanner";
 import { usePortalCycle } from "@/hooks/usePortalCycle";
 import { formatCurrency } from "@/lib/format";
 import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
@@ -44,10 +43,6 @@ export default function PurchasesPage() {
       {depositStatus === "pending" ? <ValidationBanner /> : null}
 
       <LiveBanner cartActive={cartActive} />
-
-      {cycle?.shipment?.liquidationAlerts?.length ? (
-        <LiquidationAlertsBanner alerts={cycle.shipment.liquidationAlerts} />
-      ) : null}
 
       {cycle ? <CycleTimers cycle={cycle} /> : null}
 
