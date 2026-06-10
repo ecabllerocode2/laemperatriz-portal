@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  clearDeferredInstallPrompt,
+  getDeferredInstallPrompt,
+  subscribeInstallPrompt,
+} from "@/lib/pwa-install-prompt";
 
 const DISMISS_KEY = "portal-pwa-install-dismissed-at";
 const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -16,6 +21,10 @@ export function isIosDevice(): boolean {
     /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
   );
+}
+
+export function isAndroidDevice(): boolean {
+  return /Android/i.test(navigator.userAgent);
 }
 
 function isDismissedRecently(): boolean {
@@ -39,30 +48,33 @@ export function dismissPwaInstallPrompt(): void {
 }
 
 export function usePwaInstall() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const [hasPrompt, setHasPrompt] = useState(() => getDeferredInstallPrompt() !== null);
   const [installed, setInstalled] = useState(() => isStandalonePwa());
   const [dismissed, setDismissed] = useState(() => isDismissedRecently());
   const [isIos] = useState(() => isIosDevice());
+  const [isAndroid] = useState(() => isAndroidDevice());
 
   useEffect(() => {
     if (installed) return;
 
-    const onBeforeInstall = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
+    const sync = () => {
+      setHasPrompt(getDeferredInstallPrompt() !== null);
+      setInstalled(isStandalonePwa());
     };
+
+    sync();
+    const unsubscribe = subscribeInstallPrompt(sync);
 
     const onInstalled = () => {
+      clearDeferredInstallPrompt();
       setInstalled(true);
-      setDeferredPrompt(null);
+      setHasPrompt(false);
     };
 
-    window.addEventListener("beforeinstallprompt", onBeforeInstall);
     window.addEventListener("appinstalled", onInstalled);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      unsubscribe();
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, [installed]);
@@ -73,24 +85,29 @@ export function usePwaInstall() {
   }, []);
 
   const install = useCallback(async () => {
-    if (!deferredPrompt) return false;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
+    const prompt = getDeferredInstallPrompt();
+    if (!prompt) return false;
+
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    clearDeferredInstallPrompt();
+    setHasPrompt(false);
+
     if (outcome === "accepted") {
       setInstalled(true);
       return true;
     }
     return false;
-  }, [deferredPrompt]);
+  }, []);
 
-  const canNativeInstall = deferredPrompt !== null;
+  const canNativeInstall = hasPrompt;
   const shouldOfferInstall = !installed && !dismissed;
 
   return {
     installed,
     dismissed,
     isIos,
+    isAndroid,
     canNativeInstall,
     shouldOfferInstall,
     install,

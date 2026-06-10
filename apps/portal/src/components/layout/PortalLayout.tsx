@@ -8,6 +8,7 @@ import PwaInstallModal from "@/components/pwa/PwaInstallModal";
 import ShippingAddressModal from "@/components/shipping/ShippingAddressModal";
 import Toast from "@/components/ui/Toast";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import { waitForInstallPrompt } from "@/lib/pwa-install-prompt";
 import { usePortalCycle } from "@/hooks/usePortalCycle";
 import { usePortalProfile } from "@/hooks/usePortalProfile";
 import { useAuthStore } from "@/stores/auth.store";
@@ -30,7 +31,8 @@ export default function PortalLayout() {
   );
   const [addressDismissed, setAddressDismissed] = useState(false);
   const [showPwaInstall, setShowPwaInstall] = useState(false);
-  const { shouldOfferInstall, isIos, canNativeInstall, install, dismiss } = usePwaInstall();
+  const { shouldOfferInstall, isIos, isAndroid, canNativeInstall, install, dismiss } =
+    usePwaInstall();
 
   const showAddressModal = needsShippingAddress && !addressDismissed;
 
@@ -54,8 +56,33 @@ export default function PortalLayout() {
     if (!profile || !shouldOfferInstall) return;
     if (showCartModal || showAddressModal) return;
 
-    const timer = window.setTimeout(() => setShowPwaInstall(true), 1500);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+
+    const prepareInstallModal = async () => {
+      await new Promise((resolve) => window.setTimeout(resolve, 800));
+
+      if (cancelled) return;
+
+      if ("serviceWorker" in navigator) {
+        try {
+          await navigator.serviceWorker.ready;
+        } catch {
+          /* SW no disponible */
+        }
+      }
+
+      if (cancelled) return;
+
+      await waitForInstallPrompt(4000);
+
+      if (!cancelled) setShowPwaInstall(true);
+    };
+
+    void prepareInstallModal();
+
+    return () => {
+      cancelled = true;
+    };
   }, [profile, shouldOfferInstall, showCartModal, showAddressModal]);
 
   return (
@@ -79,6 +106,7 @@ export default function PortalLayout() {
       <PwaInstallModal
         open={showPwaInstall}
         isIos={isIos}
+        isAndroid={isAndroid}
         canNativeInstall={canNativeInstall}
         onInstall={install}
         onDismiss={dismiss}

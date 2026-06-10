@@ -3,10 +3,42 @@ import { Download, Share, Smartphone, X } from "lucide-react";
 interface PwaInstallModalProps {
   open: boolean;
   isIos: boolean;
+  isAndroid: boolean;
   canNativeInstall: boolean;
   onInstall: () => Promise<boolean>;
   onDismiss: () => void;
   onClose: () => void;
+}
+
+function AndroidInstructions() {
+  return (
+    <ol className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-600">
+      <li className="flex gap-3">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-night text-xs font-bold text-white">
+          1
+        </span>
+        <span>
+          Toca el menú <strong className="text-brand-night">⋮</strong> (tres puntos) arriba a la
+          derecha del navegador.
+        </span>
+      </li>
+      <li className="flex gap-3">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-night text-xs font-bold text-white">
+          2
+        </span>
+        <span>
+          Elige <strong className="text-brand-night">Instalar aplicación</strong> o{" "}
+          <strong className="text-brand-night">Añadir a la pantalla de inicio</strong>.
+        </span>
+      </li>
+      <li className="flex gap-3">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-night text-xs font-bold text-white">
+          3
+        </span>
+        <span>Confirma y listo: la app quedará en tu pantalla de inicio.</span>
+      </li>
+    </ol>
+  );
 }
 
 function IosInstructions() {
@@ -45,6 +77,7 @@ function IosInstructions() {
 export default function PwaInstallModal({
   open,
   isIos,
+  isAndroid,
   canNativeInstall,
   onInstall,
   onDismiss,
@@ -107,11 +140,12 @@ export default function PwaInstallModal({
           <p className="mt-4 text-sm text-neutral-600">
             Toca el botón de abajo y confirma la instalación en tu navegador.
           </p>
+        ) : isAndroid ? (
+          <AndroidInstructions />
         ) : (
           <p className="mt-4 text-sm text-neutral-600">
-            Abre este portal en <strong className="text-brand-night">Chrome</strong> o{" "}
-            <strong className="text-brand-night">Edge</strong> en tu celular y usa el menú del
-            navegador → <strong className="text-brand-night">Instalar aplicación</strong>.
+            Usa el menú del navegador →{" "}
+            <strong className="text-brand-night">Instalar aplicación</strong>.
           </p>
         )}
 
