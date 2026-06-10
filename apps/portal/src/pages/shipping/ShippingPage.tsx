@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
+import type { PortalCycle } from "@emperatriz/types";
 import LiveBanner from "@/components/home/LiveBanner";
 import LiquidationAlertsBanner from "@/components/shipping/LiquidationAlertsBanner";
 import ShipmentCard from "@/components/shipping/ShipmentCard";
 import ShipmentDetailModal from "@/components/shipping/ShipmentDetailModal";
-import { usePortalCycle } from "@/hooks/usePortalCycle";
+import { usePortalShipments } from "@/hooks/usePortalShipments";
+import { confirmFreeSettlement } from "@/lib/portal-cycle";
 import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
 import { useUiStore } from "@/stores/ui.store";
 
@@ -17,25 +19,31 @@ interface PortalContext {
 export default function ShippingPage() {
   const { depositStatus } = useOutletContext<PortalContext>();
   const cartActive = depositStatus === "approved";
-  const { cycle, loading, error, reload } = usePortalCycle(cartActive);
-  const { openReceiptModal } = useUiStore();
-  const [detailOpen, setDetailOpen] = useState(false);
+  const { active, history, loading, error, reload } = usePortalShipments(cartActive);
+  const { openReceiptModal, bumpProfileReload } = useUiStore();
+  const [detailCycle, setDetailCycle] = useState<PortalCycle | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
-  const shipment = cycle?.shipment;
-  const inProgress =
-    cycle &&
-    (cycle.status === "deposit_confirmed" ||
-      cycle.status === "active" ||
-      cycle.status === "closing_new" ||
-      cycle.status === "closing_freq" ||
-      cycle.status === "penalty_freq");
+  const shipment = active?.shipment;
 
-  const handlePayShipping = () => {
-    if (!cycle?.shipment?.canPayShipping) return;
+  const handlePayShipping = (cycle: PortalCycle) => {
+    if (!cycle.shipment?.canPayShipping) return;
     openReceiptModal({
       purpose: "shipping",
       amount: cycle.shipment.projectedShippingCost,
     });
+  };
+
+  const handleConfirmFree = async (cycle: PortalCycle) => {
+    if (!cycle.shipment?.canConfirmFreeShipping || confirming) return;
+    setConfirming(true);
+    try {
+      await confirmFreeSettlement();
+      bumpProfileReload();
+      await reload();
+    } finally {
+      setConfirming(false);
+    }
   };
 
   return (
@@ -50,9 +58,14 @@ export default function ShippingPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-brand-night sm:text-lg">Mis envíos</h2>
-            {inProgress ? (
+            {active ? (
               <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-brand-red">
-                {shipment ? "1 envío" : "En curso"}
+                1 en curso
+              </span>
+            ) : null}
+            {history.length > 0 ? (
+              <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
+                {history.length} anteriores
               </span>
             ) : null}
           </div>
@@ -69,34 +82,60 @@ export default function ShippingPage() {
 
         {error ? (
           <p className="mt-6 text-center text-sm text-brand-red">{error}</p>
-        ) : loading && !cycle ? (
+        ) : loading && !active && history.length === 0 ? (
           <p className="mt-6 text-center text-sm text-neutral-500">Cargando envíos…</p>
-        ) : !cycle || !inProgress ? (
+        ) : !active && history.length === 0 ? (
           <p className="mt-6 text-center text-sm text-neutral-500">
             {cartActive
-              ? "Aún no tienes un envío activo. Aparecerá aquí al confirmar tu depósito."
+              ? "Aún no tienes envíos. Aparecerá aquí al confirmar tu depósito."
               : "Activa tu carrito con el depósito para ver tus envíos."}
           </p>
         ) : (
-          <div className="mt-4 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              En curso
-            </p>
-            <ShipmentCard
-              cycle={cycle}
-              onOpenDetail={() => setDetailOpen(true)}
-              onPayShipping={handlePayShipping}
-            />
+          <div className="mt-4 space-y-4">
+            {active ? (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  En curso
+                </p>
+                <ShipmentCard
+                  cycle={active}
+                  onOpenDetail={() => setDetailCycle(active)}
+                  onPayShipping={() => handlePayShipping(active)}
+                  onConfirmFree={() => void handleConfirmFree(active)}
+                />
+              </div>
+            ) : null}
+
+            {history.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Historial
+                </p>
+                {history.map((item) => (
+                  <ShipmentCard
+                    key={item.cycleId}
+                    cycle={item.cycle}
+                    readOnly
+                    onOpenDetail={() => setDetailCycle(item.cycle)}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         )}
       </section>
 
-      {cycle && detailOpen ? (
+      {detailCycle ? (
         <ShipmentDetailModal
-          open={detailOpen}
-          cycle={cycle}
-          onClose={() => setDetailOpen(false)}
-          onPayShipping={handlePayShipping}
+          open
+          cycle={detailCycle}
+          onClose={() => setDetailCycle(null)}
+          {...(detailCycle.shipment?.canPayShipping
+            ? { onPayShipping: () => handlePayShipping(detailCycle) }
+            : {})}
+          {...(detailCycle.shipment?.canConfirmFreeShipping
+            ? { onConfirmFree: () => void handleConfirmFree(detailCycle) }
+            : {})}
         />
       ) : null}
     </>

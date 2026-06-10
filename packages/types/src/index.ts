@@ -428,12 +428,21 @@ export interface PortalLiquidationAlert {
   remainingMs?: number;
 }
 
+/** Paso del rastreo de envío en el portal. */
+export interface ShippingProgressStep {
+  id: "packing" | "shipped" | "delivered";
+  label: string;
+  done: boolean;
+  active: boolean;
+}
+
 /** Resumen de envío del ciclo para la pantalla Mis envíos. */
 export interface PortalShipmentSummary {
   shipmentNumber: number;
   cycleDay: number;
   cycleDayTotal: number;
   openedAtMs?: number;
+  closedAtMs?: number;
   statusLabel: string;
   statusTone: "open" | "closing" | "settled" | "penalty";
   accumulatedTotal: number;
@@ -445,11 +454,36 @@ export interface PortalShipmentSummary {
   pendingNotesCount: number;
   pendingNotesTotal: number;
   canPayShipping: boolean;
+  canConfirmFreeShipping: boolean;
   canPayNotes: boolean;
   purchaseWindowRemainingMs: number;
   settlementRemainingMs: number;
   shippingTab: ShippingTier[];
+  shippingProgress: ShippingProgressStep[];
   liquidationAlerts: PortalLiquidationAlert[];
+}
+
+export interface PortalShipmentListItem {
+  cycleId: string;
+  isActive: boolean;
+  cycle: PortalCycle;
+}
+
+export interface PortalShipmentsResponse {
+  active: PortalCycle | null;
+  history: PortalShipmentListItem[];
+  needsShippingAddress: boolean;
+  shippingAddress: string | null;
+  shippingAddressDetail?: Record<string, unknown> | null;
+}
+
+export interface PortalNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  read: boolean;
+  createdAt?: string;
 }
 
 export interface PortalPenaltySummary {

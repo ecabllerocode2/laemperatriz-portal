@@ -1,11 +1,14 @@
-import { Wallet } from "lucide-react";
+import { CheckCircle, Wallet } from "lucide-react";
 import type { PortalCycle } from "@emperatriz/types";
+import ShippingProgressTracker from "@/components/shipping/ShippingProgressTracker";
 import { formatCurrency, formatShipmentDate } from "@/lib/format";
 
 interface ShipmentCardProps {
   cycle: PortalCycle;
   onOpenDetail: () => void;
   onPayShipping?: () => void;
+  onConfirmFree?: () => void;
+  readOnly?: boolean;
 }
 
 function statusBadgeClass(tone: string): string {
@@ -21,12 +24,28 @@ function statusBadgeClass(tone: string): string {
   }
 }
 
-export default function ShipmentCard({ cycle, onOpenDetail, onPayShipping }: ShipmentCardProps) {
+export default function ShipmentCard({
+  cycle,
+  onOpenDetail,
+  onPayShipping,
+  onConfirmFree,
+  readOnly = false,
+}: ShipmentCardProps) {
   const shipment = cycle.shipment;
   if (!shipment) return null;
 
   const purchaseLabel =
     shipment.purchaseCount === 1 ? "1 compra" : `${shipment.purchaseCount} compras`;
+
+  const statusText = shipment.canPayShipping
+    ? "Pago envío pendiente"
+    : shipment.canConfirmFreeShipping
+      ? "Confirma tu envío gratis"
+      : shipment.pendingNotesCount > 0
+        ? "Notas por liquidar en el ciclo"
+        : readOnly
+          ? "Envío cerrado"
+          : "Ciclo en curso — solo consulta";
 
   return (
     <article className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -36,8 +55,9 @@ export default function ShipmentCard({ cycle, onOpenDetail, onPayShipping }: Shi
             Envío #{shipment.shipmentNumber}
           </h3>
           <p className="mt-0.5 text-xs text-neutral-500">
-            {formatShipmentDate(shipment.openedAtMs)} · Día {shipment.cycleDay}/
-            {shipment.cycleDayTotal} · {purchaseLabel}
+            {formatShipmentDate(shipment.openedAtMs)}
+            {!readOnly ? ` · Día ${shipment.cycleDay}/${shipment.cycleDayTotal}` : ""} ·{" "}
+            {purchaseLabel}
           </p>
         </div>
         <span
@@ -58,15 +78,11 @@ export default function ShipmentCard({ cycle, onOpenDetail, onPayShipping }: Shi
         </div>
       </div>
 
-      <p className="mt-2 text-xs text-neutral-600">
-        {shipment.canPayShipping
-          ? "Pago envío pendiente"
-          : shipment.pendingNotesCount > 0
-            ? "Notas por liquidar en el ciclo"
-            : "Ciclo en curso — solo consulta"}
-      </p>
+      <ShippingProgressTracker steps={shipment.shippingProgress} compact />
 
-      <div className="mt-3 flex gap-2">
+      <p className="mt-2 text-xs text-neutral-600">{statusText}</p>
+
+      <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={onOpenDetail}
@@ -74,7 +90,17 @@ export default function ShipmentCard({ cycle, onOpenDetail, onPayShipping }: Shi
         >
           Detalle
         </button>
-        {shipment.canPayShipping && onPayShipping ? (
+        {!readOnly && shipment.canConfirmFreeShipping && onConfirmFree ? (
+          <button
+            type="button"
+            onClick={onConfirmFree}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Confirmar
+          </button>
+        ) : null}
+        {!readOnly && shipment.canPayShipping && onPayShipping ? (
           <button
             type="button"
             onClick={onPayShipping}
@@ -83,16 +109,16 @@ export default function ShipmentCard({ cycle, onOpenDetail, onPayShipping }: Shi
             <Wallet className="h-4 w-4" />
             Pagar
           </button>
-        ) : (
+        ) : !readOnly && !shipment.canConfirmFreeShipping ? (
           <button
             type="button"
-            disabled
+            disabled={!shipment.canPayShipping}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral-100 py-2.5 text-sm font-semibold text-neutral-400"
           >
             <Wallet className="h-4 w-4" />
             Pagar
           </button>
-        )}
+        ) : null}
       </div>
     </article>
   );

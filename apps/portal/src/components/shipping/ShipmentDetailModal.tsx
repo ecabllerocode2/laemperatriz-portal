@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import type { PortalCycle } from "@emperatriz/types";
 import { formatCurrency, formatShipmentDate } from "@/lib/format";
+import ShippingProgressTracker from "@/components/shipping/ShippingProgressTracker";
 import ShippingTableModal from "@/components/shipping/ShippingTableModal";
 
 interface ShipmentDetailModalProps {
@@ -9,6 +10,7 @@ interface ShipmentDetailModalProps {
   cycle: PortalCycle;
   onClose: () => void;
   onPayShipping?: () => void;
+  onConfirmFree?: () => void;
 }
 
 function statusBadgeClass(tone: string): string {
@@ -43,6 +45,7 @@ export default function ShipmentDetailModal({
   cycle,
   onClose,
   onPayShipping,
+  onConfirmFree,
 }: ShipmentDetailModalProps) {
   const [showTable, setShowTable] = useState(false);
   const [panel, setPanel] = useState<"table" | "early">("table");
@@ -96,7 +99,9 @@ export default function ShipmentDetailModal({
           </div>
 
           <div className="overflow-y-auto px-4 py-4 sm:px-5">
-            <div className="grid grid-cols-3 gap-2 rounded-xl bg-neutral-50 p-3 text-center">
+            <ShippingProgressTracker steps={shipment.shippingProgress} />
+
+            <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-neutral-50 p-3 text-center">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
                   Acumulado
@@ -210,6 +215,18 @@ export default function ShipmentDetailModal({
               </div>
             </div>
           </div>
+
+          {shipment.canConfirmFreeShipping && onConfirmFree ? (
+            <div className="border-t border-neutral-100 p-4 sm:px-5">
+              <button
+                type="button"
+                onClick={onConfirmFree}
+                className="w-full rounded-xl bg-emerald-600 py-3.5 text-sm font-semibold text-white"
+              >
+                Confirmar envío gratis
+              </button>
+            </div>
+          ) : null}
 
           {shipment.canPayShipping && onPayShipping ? (
             <div className="border-t border-neutral-100 p-4 sm:px-5">

@@ -1,13 +1,18 @@
 import { Facebook, LogOut, MessageCircle, ShoppingBag } from "lucide-react";
 import { signOut } from "firebase/auth";
+import NotificationsBell from "@/components/layout/NotificationsBell";
 import { auth } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/auth.store";
 
 interface PortalHeaderProps {
   firstName: string;
+  notificationsEnabled?: boolean;
 }
 
-export default function PortalHeader({ firstName }: PortalHeaderProps) {
+export default function PortalHeader({
+  firstName,
+  notificationsEnabled = true,
+}: PortalHeaderProps) {
   const { clearAuth } = useAuthStore();
 
   const handleLogout = async () => {
@@ -47,6 +52,7 @@ export default function PortalHeader({ firstName }: PortalHeaderProps) {
           >
             <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           </a>
+          <NotificationsBell enabled={notificationsEnabled} />
           <button
             type="button"
             className="hidden h-9 w-9 items-center justify-center rounded-full text-brand-night hover:bg-neutral-50 sm:flex sm:h-10 sm:w-10"
