@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import CartActivationModal from "@/components/cart/CartActivationModal";
 import ReceiptUploadModal from "@/components/cart/ReceiptUploadModal";
 import BottomNav from "@/components/layout/BottomNav";
 import PortalHeader from "@/components/layout/PortalHeader";
+import ShippingAddressModal from "@/components/shipping/ShippingAddressModal";
 import Toast from "@/components/ui/Toast";
+import { usePortalCycle } from "@/hooks/usePortalCycle";
 import { usePortalProfile } from "@/hooks/usePortalProfile";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
@@ -21,6 +23,16 @@ export default function PortalLayout() {
 
   const depositStatus = profile?.depositStatus ?? "none";
   const displayName = profile?.name || user?.name || "Clienta";
+  const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle(
+    depositStatus === "approved",
+  );
+  const [addressDismissed, setAddressDismissed] = useState(false);
+
+  const showAddressModal = needsShippingAddress && !addressDismissed;
+
+  useEffect(() => {
+    if (needsShippingAddress) setAddressDismissed(false);
+  }, [needsShippingAddress]);
 
   useEffect(() => {
     if (isLoading || !user) return;
@@ -43,6 +55,15 @@ export default function PortalLayout() {
       <BottomNav />
       <CartActivationModal />
       <ReceiptUploadModal />
+      <ShippingAddressModal
+        open={showAddressModal}
+        defaultPostalCode={profile?.postalCode ?? ""}
+        initial={shippingAddressDetail ?? null}
+        onSaved={() => {
+          setAddressDismissed(true);
+          void reloadCycle();
+        }}
+      />
       <Toast />
     </div>
   );

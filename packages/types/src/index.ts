@@ -189,6 +189,7 @@ export interface PenaltyItem {
 
 export type CycleStatus =
   | "awaiting_deposit" // esperando confirmación del depósito de $200
+  | "deposit_confirmed" // depósito ok; ventana inicia en la primera nota
   | "active"           // carrito activo, ventana de 7 días corriendo
   | "closing_new"      // día 7, cliente Nueva: se evalúa el umbral
   | "penalty_new"      // Nueva que no acumuló: debe pagar envío de penalización
@@ -239,6 +240,7 @@ export interface Cycle {
    * Se restockean solo cuando la clienta aprueba.
    */
   penaltyReturnedItems?: PenaltyItem[];
+  penaltyDecision?: "pending" | "accepted" | "rejected";
   outcome?: CycleOutcome;
   closedAt?: Timestamp;
   /** Estado del envío físico (solo para ciclos liquidados). */
@@ -414,9 +416,55 @@ export interface PortalSaleNote {
   createdAt: Timestamp;
   /** ms restantes para pronto pago (0 si vencido o no aplica). */
   earlyPayRemainingMs?: number;
+  /** true cuando el live terminó y ya corre el timer de 24h. */
+  earlyPayTimerStarted?: boolean;
 }
 
-/** Ciclo visible para la clienta (sin datos de penalización interna). */
+/** Aviso de liquidación (notas o envío) en el portal. */
+export interface PortalLiquidationAlert {
+  id: string;
+  message: string;
+  severity: "info" | "warning" | "urgent";
+  remainingMs?: number;
+}
+
+/** Resumen de envío del ciclo para la pantalla Mis envíos. */
+export interface PortalShipmentSummary {
+  shipmentNumber: number;
+  cycleDay: number;
+  cycleDayTotal: number;
+  openedAtMs?: number;
+  statusLabel: string;
+  statusTone: "open" | "closing" | "settled" | "penalty";
+  accumulatedTotal: number;
+  paidMerchandise: number;
+  projectedShippingCost: number;
+  shippingFree: boolean;
+  shippingLabel: string;
+  purchaseCount: number;
+  pendingNotesCount: number;
+  pendingNotesTotal: number;
+  canPayShipping: boolean;
+  canPayNotes: boolean;
+  purchaseWindowRemainingMs: number;
+  settlementRemainingMs: number;
+  shippingTab: ShippingTier[];
+  liquidationAlerts: PortalLiquidationAlert[];
+}
+
+export interface PortalPenaltySummary {
+  decision: "pending" | "accepted" | "rejected";
+  grossMerchandise: number;
+  keepBudget: number;
+  adjustedTotal: number;
+  removedValue: number;
+  penaltyPercent: number;
+  penaltyShipping: number;
+  keptItems: PenaltyItem[];
+  returnedItems: PenaltyItem[];
+}
+
+/** Ciclo visible para la clienta. */
 export interface PortalCycle {
   id: string;
   tier: CustomerTier;
@@ -436,6 +484,9 @@ export interface PortalCycle {
   /** ms restantes para liquidación (frecuente, día 8). */
   settlementRemainingMs?: number;
   notes: PortalSaleNote[];
+  penalty?: PortalPenaltySummary | null;
+  /** Datos enriquecidos para Mis envíos (proyección, tabulación, avisos). */
+  shipment?: PortalShipmentSummary;
 }
 
 export interface PortalNotesPage {

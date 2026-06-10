@@ -1,3 +1,4 @@
+import type { ReceiptModalOptions } from "@/components/cart/receipt-modal-config";
 import { apiRequest } from "@/lib/api";
 import type { PortalProfileDoc } from "@/types/portal-profile";
 
@@ -24,7 +25,10 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export async function uploadDepositReceipt(file: File): Promise<void> {
+export async function uploadPaymentReceipt(
+  file: File,
+  options: ReceiptModalOptions,
+): Promise<void> {
   const data = await fileToBase64(file);
   await apiRequest("/api/portal/deposit-receipt", {
     method: "POST",
@@ -32,6 +36,14 @@ export async function uploadDepositReceipt(file: File): Promise<void> {
       filename: file.name,
       contentType: file.type || "image/jpeg",
       data,
+      purpose: options.purpose,
+      amount: options.amount,
+      noteId: options.noteId,
     }),
   });
+}
+
+/** @deprecated Use uploadPaymentReceipt */
+export async function uploadDepositReceipt(file: File): Promise<void> {
+  return uploadPaymentReceipt(file, { purpose: "cart", amount: DEPOSIT_AMOUNT });
 }

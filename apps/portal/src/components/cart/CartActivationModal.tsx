@@ -51,7 +51,7 @@ export default function CartActivationModal() {
         <div className="mt-6 space-y-3">
           <button
             type="button"
-            onClick={openReceiptModal}
+            onClick={() => openReceiptModal()}
             className="w-full rounded-full bg-brand-night py-3.5 text-sm font-semibold text-white transition hover:bg-black"
           >
             Ya transferí — subir comprobante

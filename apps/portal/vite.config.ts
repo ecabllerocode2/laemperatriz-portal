@@ -1,10 +1,56 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff2}"],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: "index.html",
+      },
+      manifest: {
+        name: "La Emperatriz",
+        short_name: "Emperatriz",
+        description: "Portal de clientas La Emperatriz",
+        theme_color: "#C8102E",
+        background_color: "#F7F7F7",
+        display: "standalone",
+        orientation: "portrait",
+        start_url: "/",
+        icons: [
+          {
+            src: "/favicon.jpeg",
+            sizes: "192x192",
+            type: "image/jpeg",
+          },
+          {
+            src: "/favicon.jpeg",
+            sizes: "512x512",
+            type: "image/jpeg",
+          },
+          {
+            src: "/favicon.jpeg",
+            sizes: "512x512",
+            type: "image/jpeg",
+            purpose: "maskable",
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
+    }),
+  ],
   server: {
     port: 5174,
     strictPort: true,
