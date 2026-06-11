@@ -2,6 +2,7 @@ import { Facebook, LogOut, MessageCircle, ShoppingBag } from "lucide-react";
 import { signOut } from "firebase/auth";
 import NotificationsBell from "@/components/layout/NotificationsBell";
 import { auth } from "@/lib/firebase";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { useAuthStore } from "@/stores/auth.store";
 
 interface PortalHeaderProps {
@@ -35,7 +36,7 @@ export default function PortalHeader({
 
         <div className="flex shrink-0 items-center">
           <a
-            href="https://facebook.com"
+            href={FACEBOOK_PAGE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-9 w-9 items-center justify-center rounded-full text-[#1877F2] hover:bg-neutral-50 sm:h-10 sm:w-10"

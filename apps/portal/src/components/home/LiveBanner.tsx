@@ -1,4 +1,6 @@
 import { Facebook } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -13,22 +15,29 @@ interface LiveBannerProps {
 }
 
 export default function LiveBanner({ cartActive }: LiveBannerProps) {
+  const navigate = useNavigate();
+
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
       <h2 className="text-center font-display text-lg leading-snug text-brand-night sm:text-xl">
-        ¡Activa tu carrito y entra al live!
+        {cartActive ? "¡Entra al live y aparta piezas!" : "¡Entra al live de La Emperatriz!"}
       </h2>
+      {!cartActive ? (
+        <p className="mt-2 text-center text-sm text-neutral-600">
+          Puedes ver la transmisión sin carrito. Actívalo cuando quieras comprar.
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
-          disabled={!cartActive}
-          className="rounded-full bg-brand-red px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => navigate("/live")}
+          className="rounded-full bg-brand-red px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark"
         >
           Ir al live
         </button>
         <a
-          href="https://facebook.com"
+          href={FACEBOOK_PAGE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white"

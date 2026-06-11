@@ -7,6 +7,7 @@ import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import PaymentsPage from "@/pages/payments/PaymentsPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import LivePage from "@/pages/live/LivePage";
 import PurchasesPage from "@/pages/purchases/PurchasesPage";
 import ShippingPage from "@/pages/shipping/ShippingPage";
 
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
         element: <PortalLayout />,
         children: [
           { index: true, element: <PurchasesPage /> },
+          { path: "live", element: <LivePage /> },
           { path: "envios", element: <ShippingPage /> },
           { path: "pagos", element: <PaymentsPage /> },
           { path: "perfil", element: <ProfilePage /> },

@@ -528,3 +528,36 @@ export interface PortalNotesPage {
   nextCursor: string | null;
   hasMore: boolean;
 }
+
+/** Producto destacado en el live del portal. */
+export interface PortalFeaturedProduct {
+  productId: string;
+  name: string;
+  price: number;
+  stock: number;
+  imageUrl: string | null;
+  shownAt: string | null;
+}
+
+/** Sesión en vivo activa visible para clientas en el portal. */
+export interface PortalLiveSession {
+  id: string;
+  name: string;
+  startedAt: string | null;
+  facebookVideoUrl: string | null;
+  embedUrl: string | null;
+  featuredProduct: PortalFeaturedProduct | null;
+  featuredHistory: PortalFeaturedProduct[];
+}
+
+export interface PortalLiveResponse {
+  session: PortalLiveSession | null;
+}
+
+export interface PortalLiveOrderResult {
+  noteId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  total: number;
+}
