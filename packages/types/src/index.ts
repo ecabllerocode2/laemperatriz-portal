@@ -529,6 +529,15 @@ export interface PortalNotesPage {
   hasMore: boolean;
 }
 
+/** Comentario efímero en el chat del live (Realtime Database). */
+export interface LiveChatComment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: number;
+}
+
 /** Producto destacado en el live del portal. */
 export interface PortalFeaturedProduct {
   productId: string;

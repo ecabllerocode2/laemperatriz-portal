@@ -102,7 +102,7 @@ export default function PortalLayout() {
       <main
         className={
           isLivePage
-            ? "max-lg:p-0 lg:portal-shell lg:space-y-5 lg:py-5"
+            ? "max-lg:p-0 lg:portal-shell-live lg:space-y-5 lg:py-5"
             : "portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5"
         }
       >

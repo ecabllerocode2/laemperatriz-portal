@@ -82,6 +82,13 @@ a,
     max-width: 42rem;
     padding-inline: 1.5rem;
   }
+
+  .portal-shell-live {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  }
 }
 
 .modal-sheet {
@@ -118,6 +125,11 @@ a,
 
 .animate-sheet-up {
   animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.live-overlay-fade {
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 88%);
+  mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 88%);
 }
 
 @media (min-width: 640px) {

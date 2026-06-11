@@ -3,8 +3,12 @@ import { ArrowLeft, ExternalLink, Radio, RefreshCw } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import FacebookLiveEmbed from "@/components/live/FacebookLiveEmbed";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
+import LiveChatFeed from "@/components/live/LiveChatFeed";
+import LiveChatInput from "@/components/live/LiveChatInput";
+import LiveChatPanel from "@/components/live/LiveChatPanel";
 import LiveProductPanel from "@/components/live/LiveProductPanel";
-import LiveProductStrip from "@/components/live/LiveProductStrip";
+import LiveProductStack from "@/components/live/LiveProductStack";
+import { useLiveChat } from "@/hooks/useLiveChat";
 import { usePortalLive } from "@/hooks/usePortalLive";
 import { createPortalLiveOrder } from "@/lib/portal-live";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
@@ -39,10 +43,15 @@ function mergeShownProducts(
 }
 
 export default function LivePage() {
-  const { depositStatus } = useOutletContext<PortalContext>();
+  const { profile, depositStatus } = useOutletContext<PortalContext>();
   const { openCartModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = depositStatus === "approved";
   const { session, featuredProduct, featuredHistory, loading, error, reload } = usePortalLive(true);
+  const authorName = profile?.name ?? "Clienta";
+  const { comments, chatActive, sending, error: chatError, sendComment } = useLiveChat(
+    session?.id,
+    authorName,
+  );
   const [selectedProduct, setSelectedProduct] = useState<PortalFeaturedProduct | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -112,7 +121,7 @@ export default function LivePage() {
 
   return (
     <>
-      {/* Móvil: transmisión vertical a pantalla completa */}
+      {/* Móvil: estilo TikTok — video + chat izquierda + productos derecha */}
       <div className="fixed inset-0 z-10 flex flex-col bg-black lg:hidden">
         <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 pb-8 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
@@ -157,21 +166,38 @@ export default function LivePage() {
 
         <div className="relative min-h-0 flex-1">
           {videoBlock}
-          <LiveProductStrip
-            products={shownProducts}
-            currentProductId={featuredProduct?.productId ?? null}
-            onSelect={openProductModal}
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-20 flex items-end justify-between gap-1 px-2">
+            <LiveChatFeed comments={comments} variant="overlay" className="pl-1" />
+            <LiveProductStack
+              products={shownProducts}
+              currentProductId={featuredProduct?.productId ?? null}
+              onSelect={openProductModal}
+              variant="overlay"
+              className="pr-1"
+            />
+          </div>
+        </div>
+
+        <div className="relative z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+          {chatError ? (
+            <p className="mb-2 text-center text-xs text-red-300">{chatError}</p>
+          ) : null}
+          <LiveChatInput
+            disabled={!session || !chatActive}
+            sending={sending}
+            onSend={sendComment}
           />
         </div>
 
         {error ? (
-          <p className="absolute inset-x-4 bottom-28 z-30 rounded-xl bg-red-600/90 px-3 py-2 text-center text-xs text-white">
+          <p className="absolute inset-x-4 bottom-32 z-30 rounded-xl bg-red-600/90 px-3 py-2 text-center text-xs text-white">
             {error}
           </p>
         ) : null}
       </div>
 
-      {/* Escritorio: video vertical + productos al lado */}
+      {/* Escritorio: video + productos + chat */}
       <div className="hidden space-y-5 lg:block">
         <section className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -193,7 +219,7 @@ export default function LivePage() {
               {session?.name ?? "Live de La Emperatriz"}
             </h1>
             <p className="mt-1 text-sm text-neutral-600">
-              Transmisión en vertical. Las piezas en pantalla aparecen a la derecha para apartarlas.
+              Transmisión vertical con chat en vivo y piezas para apartar.
             </p>
           </div>
 
@@ -228,7 +254,7 @@ export default function LivePage() {
           </section>
         ) : null}
 
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)_minmax(0,18rem)]">
           <div className="xl:sticky xl:top-24">
             {session?.embedUrl ? (
               <FacebookLiveEmbed
@@ -268,6 +294,14 @@ export default function LivePage() {
             currentProductId={featuredProduct?.productId ?? null}
             cartActive={cartActive}
             onSelect={openProductModal}
+          />
+
+          <LiveChatPanel
+            comments={comments}
+            chatActive={chatActive}
+            sending={sending}
+            error={chatError}
+            onSend={sendComment}
           />
         </div>
       </div>
