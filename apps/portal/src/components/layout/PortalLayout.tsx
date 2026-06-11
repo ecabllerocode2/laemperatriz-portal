@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import CartActivationModal from "@/components/cart/CartActivationModal";
 import ReceiptUploadModal from "@/components/cart/ReceiptUploadModal";
 import BottomNav from "@/components/layout/BottomNav";
@@ -28,6 +28,8 @@ export default function PortalLayout() {
     closeShippingAddressModal,
   } = useUiStore();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isLivePage = pathname === "/live";
 
   const depositStatus = profile?.depositStatus ?? "none";
   const displayName = profile?.name || user?.name || "Clienta";
@@ -87,12 +89,28 @@ export default function PortalLayout() {
   }, [profile, shouldOfferInstall, showCartModal, showAddressModal]);
 
   return (
-    <div className="min-h-dvh bg-neutral-silk pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
-      <PortalHeader firstName={firstNameFrom(displayName)} />
-      <main className="portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5">
+    <div
+      className={
+        isLivePage
+          ? "min-h-dvh max-lg:overflow-hidden bg-black lg:bg-neutral-silk lg:pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
+          : "min-h-dvh bg-neutral-silk pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
+      }
+    >
+      <div className={isLivePage ? "max-lg:hidden" : undefined}>
+        <PortalHeader firstName={firstNameFrom(displayName)} />
+      </div>
+      <main
+        className={
+          isLivePage
+            ? "max-lg:p-0 lg:portal-shell lg:space-y-5 lg:py-5"
+            : "portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5"
+        }
+      >
         <Outlet context={{ profile, depositStatus }} />
       </main>
-      <BottomNav />
+      <div className={isLivePage ? "max-lg:hidden" : undefined}>
+        <BottomNav />
+      </div>
       <CartActivationModal />
       <ReceiptUploadModal />
       <ShippingAddressModal
