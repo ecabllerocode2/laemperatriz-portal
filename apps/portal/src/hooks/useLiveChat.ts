@@ -4,7 +4,7 @@ import type { LiveChatComment } from "@emperatriz/types";
 import { rtdb } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/auth.store";
 
-const MAX_VISIBLE = 40;
+const MAX_VISIBLE = 30;
 
 function mapComments(data: Record<string, unknown> | null): LiveChatComment[] {
   if (!data) return [];

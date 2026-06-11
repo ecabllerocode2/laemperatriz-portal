@@ -57,7 +57,7 @@ export default function LivePage() {
   const [submitting, setSubmitting] = useState(false);
 
   const shownProducts = useMemo(
-    () => mergeShownProducts(featuredProduct, featuredHistory),
+    () => mergeShownProducts(featuredProduct, featuredHistory).slice(-30),
     [featuredProduct, featuredHistory],
   );
 

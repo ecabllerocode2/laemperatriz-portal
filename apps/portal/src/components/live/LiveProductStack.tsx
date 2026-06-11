@@ -9,9 +9,11 @@ interface LiveProductStackProps {
   className?: string;
 }
 
+const MAX_SHOWN_PRODUCTS = 30;
+
 /** index 0 = pieza más reciente (abajo, más visible). */
 function stackOpacity(index: number): number {
-  return Math.max(0.2, 1 - index * 0.14);
+  return Math.max(0.35, 1 - index * 0.08);
 }
 
 export default function LiveProductStack({
@@ -24,14 +26,17 @@ export default function LiveProductStack({
   if (products.length === 0) return null;
 
   const isOverlay = variant === "overlay";
+  const visibleProducts = products.slice(-MAX_SHOWN_PRODUCTS);
 
   return (
     <div
-      className={`pointer-events-none flex flex-col-reverse items-end justify-end gap-2 overflow-hidden ${
-        isOverlay ? "live-overlay-fade max-h-[42vh] w-1/2" : "max-h-full w-full"
+      className={`flex flex-col-reverse items-end justify-end gap-2 ${
+        isOverlay
+          ? "live-overlay-fade pointer-events-auto max-h-[55vh] w-1/2 overflow-y-auto overscroll-contain scrollbar-none"
+          : "max-h-full w-full overflow-hidden"
       } ${className}`}
     >
-      {products.map((product, index) => {
+      {visibleProducts.map((product, index) => {
         const isCurrent = product.productId === currentProductId;
         const soldOut = product.stock < 1;
 

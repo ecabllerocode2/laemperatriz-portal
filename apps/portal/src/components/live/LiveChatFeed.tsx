@@ -6,12 +6,6 @@ interface LiveChatFeedProps {
   className?: string;
 }
 
-function commentOpacity(index: number, total: number): number {
-  if (total <= 1) return 1;
-  const progress = index / (total - 1);
-  return Math.max(0.15, 0.25 + progress * 0.75);
-}
-
 export default function LiveChatFeed({
   comments,
   variant = "overlay",
@@ -23,19 +17,20 @@ export default function LiveChatFeed({
 
   return (
     <div
-      className={`pointer-events-none flex flex-col justify-end gap-1.5 overflow-hidden ${
-        isOverlay ? "live-overlay-fade max-h-[42vh] w-1/2" : "max-h-full w-full"
+      className={`flex flex-col justify-end gap-1.5 ${
+        isOverlay
+          ? "live-overlay-fade pointer-events-auto max-h-[55vh] w-1/2 overflow-y-auto overscroll-contain scrollbar-none"
+          : "max-h-full w-full overflow-hidden"
       } ${className}`}
     >
-      {comments.map((comment, index) => (
+      {comments.map((comment) => (
         <div
           key={comment.id}
-          className={`pointer-events-auto max-w-full ${
+          className={`max-w-full shrink-0 ${
             isOverlay
               ? "rounded-2xl bg-black/35 px-2.5 py-1.5 text-white backdrop-blur-[2px]"
               : "rounded-xl bg-neutral-50 px-3 py-2"
           }`}
-          style={{ opacity: isOverlay ? commentOpacity(index, comments.length) : 1 }}
         >
           <p
             className={`truncate text-[11px] font-semibold ${
