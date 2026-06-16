@@ -5,6 +5,7 @@ interface FacebookLiveEmbedProps {
   title: string;
   layout?: "vertical" | "vertical-fullscreen";
   sessionKey?: string | null;
+  embedRefreshKey?: number;
 }
 
 export default function FacebookLiveEmbed({
@@ -12,6 +13,7 @@ export default function FacebookLiveEmbed({
   title,
   layout = "vertical",
   sessionKey = null,
+  embedRefreshKey = 0,
 }: FacebookLiveEmbedProps) {
   const isFullscreen = layout === "vertical-fullscreen";
 
@@ -31,6 +33,7 @@ export default function FacebookLiveEmbed({
         }
       >
         <iframe
+          key={embedRefreshKey}
           src={embedUrl}
           title={title}
           className="absolute inset-0 size-full border-0"

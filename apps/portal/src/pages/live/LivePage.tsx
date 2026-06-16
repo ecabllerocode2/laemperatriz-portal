@@ -47,8 +47,10 @@ export default function LivePage() {
   const { profile, depositStatus } = useOutletContext<PortalContext>();
   const { openCartModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = depositStatus === "approved";
-  const { session, featuredProduct, featuredHistory, loading, error, reload } = usePortalLive(true, 5_000);
+  const { session, featuredProduct, featuredHistory, loading, refreshing, error, reload } =
+    usePortalLive(true, 8_000);
   const authorName = profile?.name ?? "Clienta";
+  const [embedRefreshKey, setEmbedRefreshKey] = useState(0);
   const { comments, chatActive, sending, error: chatError, sendComment } = useLiveChat(
     session?.id,
     authorName,
@@ -64,6 +66,11 @@ export default function LivePage() {
 
   const orderableFeaturedProduct =
     featuredProduct && featuredProduct.stock > 0 ? featuredProduct : null;
+
+  const handleRefreshLive = () => {
+    setEmbedRefreshKey((key) => key + 1);
+    void reload();
+  };
 
   const openProductModal = (product: PortalFeaturedProduct) => {
     setSelectedProduct(product);
@@ -111,10 +118,12 @@ export default function LivePage() {
 
   const videoBlock = session?.embedUrl ? (
     <FacebookLiveEmbed
+      key={`${session.id}-${embedRefreshKey}`}
       embedUrl={session.embedUrl}
       title={session.name}
       layout="vertical-fullscreen"
       sessionKey={session.id}
+      embedRefreshKey={embedRefreshKey}
     />
   ) : (
     <div className="flex size-full items-center justify-center px-6 text-center text-sm text-white/80">
@@ -146,12 +155,12 @@ export default function LivePage() {
 
           <button
             type="button"
-            onClick={() => void reload()}
-            disabled={loading}
+            onClick={handleRefreshLive}
+            disabled={refreshing}
             className="flex size-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm disabled:opacity-50"
             aria-label="Actualizar live"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
 
@@ -241,12 +250,12 @@ export default function LivePage() {
 
           <button
             type="button"
-            onClick={() => void reload()}
-            disabled={loading}
+            onClick={handleRefreshLive}
+            disabled={refreshing}
             className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition hover:bg-white disabled:opacity-50"
             aria-label="Actualizar estado del live"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
         </section>
 
@@ -278,6 +287,7 @@ export default function LivePage() {
                 title={session.name}
                 layout="vertical"
                 sessionKey={session.id}
+                embedRefreshKey={embedRefreshKey}
               />
             ) : (
               <section className="flex aspect-[9/16] max-w-sm items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 text-center text-sm text-neutral-500">
