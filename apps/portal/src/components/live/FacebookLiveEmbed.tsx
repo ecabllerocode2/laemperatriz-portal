@@ -1,19 +1,23 @@
-import { useState } from "react";
-import { Volume2, X } from "lucide-react";
+import LiveSoundHint from "@/components/live/LiveSoundHint";
 
 interface FacebookLiveEmbedProps {
   embedUrl: string;
   title: string;
   layout?: "vertical" | "vertical-fullscreen";
+  sessionKey?: string | null;
 }
 
 export default function FacebookLiveEmbed({
   embedUrl,
   title,
   layout = "vertical",
+  sessionKey = null,
 }: FacebookLiveEmbedProps) {
   const isFullscreen = layout === "vertical-fullscreen";
-  const [soundHintDismissed, setSoundHintDismissed] = useState(false);
+
+  const hintPosition = isFullscreen
+    ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"
+    : "top-1/2 -translate-y-1/2";
 
   return (
     <div
@@ -39,24 +43,7 @@ export default function FacebookLiveEmbed({
           loading="lazy"
         />
 
-        {!soundHintDismissed ? (
-          <div className="pointer-events-none absolute inset-x-3 top-3 z-20">
-            <div className="pointer-events-auto flex items-start gap-2 rounded-xl bg-black/70 px-3 py-2 text-left text-white backdrop-blur-sm">
-              <Volume2 className="mt-0.5 size-4 shrink-0 text-brand-gold" aria-hidden />
-              <p className="flex-1 text-[11px] leading-snug">
-                Toca el video y pulsa el icono de volumen del reproductor para escuchar el live.
-              </p>
-              <button
-                type="button"
-                aria-label="Cerrar aviso de audio"
-                onClick={() => setSoundHintDismissed(true)}
-                className="flex size-6 shrink-0 items-center justify-center rounded-full text-white/70 hover:bg-white/10"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-          </div>
-        ) : null}
+        <LiveSoundHint sessionKey={sessionKey} className={hintPosition} />
       </div>
     </div>
   );
