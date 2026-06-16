@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { LiveChatComment } from "@emperatriz/types";
+import LiveOverlayScroll from "@/components/live/LiveOverlayScroll";
 
 interface LiveChatFeedProps {
   comments: LiveChatComment[];
@@ -35,43 +36,34 @@ export default function LiveChatFeed({
     setPinnedToBottom(atBottom);
   };
 
-  return (
-    <div
-      ref={scrollRef}
-      onScroll={handleScroll}
-      className={`live-scroll-touch touch-pan-y ${
-        isOverlay
-          ? "live-overlay-fade pointer-events-auto h-[min(55vh,16rem)] max-h-[min(55vh,16rem)] w-1/2 min-h-0 overflow-y-auto overscroll-contain scrollbar-none"
-          : "w-full"
-      } ${className}`}
-    >
-      <div className={`flex flex-col gap-1.5 ${isOverlay ? "min-h-min justify-end" : ""}`}>
+  if (!isOverlay) {
+    return (
+      <div className={`w-full space-y-1.5 ${className}`}>
         {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className={`max-w-full shrink-0 ${
-              isOverlay
-                ? "rounded-2xl bg-black/35 px-2.5 py-1.5 text-white backdrop-blur-[2px]"
-                : "rounded-xl bg-neutral-50 px-3 py-2"
-            }`}
-          >
-            <p
-              className={`truncate text-[11px] font-semibold ${
-                isOverlay ? "text-white/90" : "text-brand-red"
-              }`}
-            >
-              {comment.authorName}
-            </p>
-            <p
-              className={`mt-0.5 text-xs leading-snug ${
-                isOverlay ? "text-white" : "text-brand-night"
-              }`}
-            >
-              {comment.text}
-            </p>
+          <div key={comment.id} className="max-w-full shrink-0 rounded-xl bg-neutral-50 px-3 py-2">
+            <p className="truncate text-[11px] font-semibold text-brand-red">{comment.authorName}</p>
+            <p className="mt-0.5 text-xs leading-snug text-brand-night">{comment.text}</p>
           </div>
         ))}
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <LiveOverlayScroll
+      scrollRef={scrollRef}
+      onScroll={handleScroll}
+      className={`h-[min(52vh,17rem)] w-[48%] max-w-[11rem] shrink-0 ${className}`}
+    >
+      {comments.map((comment) => (
+        <div
+          key={comment.id}
+          className="max-w-full shrink-0 rounded-2xl bg-black/35 px-2.5 py-1.5 text-white backdrop-blur-[2px]"
+        >
+          <p className="truncate text-[11px] font-semibold text-white/90">{comment.authorName}</p>
+          <p className="mt-0.5 text-xs leading-snug text-white">{comment.text}</p>
+        </div>
+      ))}
+    </LiveOverlayScroll>
   );
 }

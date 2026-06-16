@@ -164,17 +164,17 @@ export default function LivePage() {
           </div>
         ) : null}
 
-        <div className="relative min-h-0 flex-1">
-          {videoBlock}
+        <div className="relative z-0 min-h-0 flex-1">
+          <div className="absolute inset-0 z-0">{videoBlock}</div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 flex items-end justify-between gap-1 px-2">
-            <LiveChatFeed comments={comments} variant="overlay" className="pl-1" />
+          <div className="absolute inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 flex items-end justify-between gap-2 px-2">
+            <LiveChatFeed comments={comments} variant="overlay" className="pl-0.5" />
             <LiveProductStack
               products={shownProducts}
               currentProductId={featuredProduct?.productId ?? null}
               onSelect={openProductModal}
               variant="overlay"
-              className="pr-1"
+              className="pr-0.5"
             />
           </div>
         </div>

@@ -38,7 +38,7 @@ export default function LiveChatPanel({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 live-scroll-touch">
+      <div className="live-scroll-touch min-h-0 flex-1 overflow-y-scroll overscroll-contain px-3 py-3">
         {comments.length === 0 ? (
           <p className="py-8 text-center text-sm text-neutral-400">
             Sé la primera en comentar durante el live.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
+import LiveOverlayScroll from "@/components/live/LiveOverlayScroll";
 import { formatCurrency } from "@/lib/format";
 
 interface LiveProductStackProps {
@@ -12,7 +13,6 @@ interface LiveProductStackProps {
 
 const MAX_SHOWN_PRODUCTS = 30;
 
-/** fromBottom 0 = pieza más reciente (abajo). */
 function stackOpacity(fromBottom: number): number {
   return Math.max(0.35, 1 - fromBottom * 0.08);
 }
@@ -41,16 +41,37 @@ export default function LiveProductStack({
 
   const isOverlay = variant === "overlay";
 
+  if (!isOverlay) {
+    return (
+      <div className={`max-h-full min-h-0 w-full space-y-2 overflow-y-scroll overscroll-contain ${className}`}>
+        {displayProducts.map((product) => (
+          <button
+            key={`${product.productId}-${product.shownAt ?? "unknown"}`}
+            type="button"
+            onClick={() => onSelect(product)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left"
+          >
+            <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+              {product.imageUrl ? (
+                <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
+              ) : null}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-brand-night">{product.name}</p>
+              <p className="text-sm font-bold text-brand-red">{formatCurrency(product.price)}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div
-      ref={scrollRef}
-      className={`live-scroll-touch touch-pan-y ${
-        isOverlay
-          ? "live-overlay-fade pointer-events-auto h-[min(55vh,16rem)] max-h-[min(55vh,16rem)] w-1/2 min-h-0 overflow-y-auto overscroll-contain scrollbar-none"
-          : "max-h-full min-h-0 w-full overflow-y-auto overscroll-contain"
-      } ${className}`}
+    <LiveOverlayScroll
+      scrollRef={scrollRef}
+      className={`h-[min(52vh,17rem)] w-[48%] max-w-[6.5rem] shrink-0 ${className}`}
     >
-      <div className={`flex flex-col gap-2 ${isOverlay ? "items-end pb-1" : "items-stretch"}`}>
+      <div className="flex flex-col items-end gap-2">
         {displayProducts.map((product, index) => {
           const isCurrent = product.productId === currentProductId;
           const soldOut = product.stock < 1;
@@ -61,13 +82,9 @@ export default function LiveProductStack({
               key={`${product.productId}-${product.shownAt ?? "unknown"}`}
               type="button"
               onClick={() => onSelect(product)}
-              style={{ opacity: isOverlay ? stackOpacity(fromBottom) : 1 }}
-              className={`pointer-events-auto flex w-[5.25rem] shrink-0 flex-col overflow-hidden rounded-xl border text-left transition active:scale-95 sm:w-[5.75rem] ${
-                isCurrent
-                  ? "border-white ring-2 ring-white/80"
-                  : isOverlay
-                    ? "border-white/25"
-                    : "border-neutral-200"
+              style={{ opacity: stackOpacity(fromBottom) }}
+              className={`flex w-[5.25rem] shrink-0 flex-col overflow-hidden rounded-xl border text-left transition active:scale-95 sm:w-[5.75rem] ${
+                isCurrent ? "border-white ring-2 ring-white/80" : "border-white/25"
               }`}
             >
               <div className="relative aspect-square bg-neutral-800">
@@ -85,30 +102,14 @@ export default function LiveProductStack({
                   </span>
                 ) : null}
               </div>
-              <div
-                className={`space-y-0.5 px-1.5 py-1 ${
-                  isOverlay ? "bg-black/80" : "bg-white"
-                }`}
-              >
-                <p
-                  className={`truncate text-[10px] font-medium ${
-                    isOverlay ? "text-white" : "text-brand-night"
-                  }`}
-                >
-                  {product.name}
-                </p>
-                <p
-                  className={`text-[10px] font-bold ${
-                    isOverlay ? "text-brand-gold" : "text-brand-red"
-                  }`}
-                >
-                  {formatCurrency(product.price)}
-                </p>
+              <div className="space-y-0.5 bg-black/80 px-1.5 py-1">
+                <p className="truncate text-[10px] font-medium text-white">{product.name}</p>
+                <p className="text-[10px] font-bold text-brand-gold">{formatCurrency(product.price)}</p>
               </div>
             </button>
           );
         })}
       </div>
-    </div>
+    </LiveOverlayScroll>
   );
 }
