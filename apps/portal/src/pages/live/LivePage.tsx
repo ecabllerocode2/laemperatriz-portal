@@ -40,14 +40,14 @@ function mergeShownProducts(
     seen.add(product.productId);
   }
 
-  return items;
+  return items.filter((product) => product.stock > 0);
 }
 
 export default function LivePage() {
   const { profile, depositStatus } = useOutletContext<PortalContext>();
   const { openCartModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = depositStatus === "approved";
-  const { session, featuredProduct, featuredHistory, loading, error, reload } = usePortalLive(true);
+  const { session, featuredProduct, featuredHistory, loading, error, reload } = usePortalLive(true, 5_000);
   const authorName = profile?.name ?? "Clienta";
   const { comments, chatActive, sending, error: chatError, sendComment } = useLiveChat(
     session?.id,
@@ -61,6 +61,9 @@ export default function LivePage() {
     () => mergeShownProducts(featuredProduct, featuredHistory).slice(-30),
     [featuredProduct, featuredHistory],
   );
+
+  const orderableFeaturedProduct =
+    featuredProduct && featuredProduct.stock > 0 ? featuredProduct : null;
 
   const openProductModal = (product: PortalFeaturedProduct) => {
     setSelectedProduct(product);
@@ -173,7 +176,7 @@ export default function LivePage() {
             <LiveChatFeed comments={comments} variant="overlay" className="pl-0.5" />
             <LiveProductStack
               products={shownProducts}
-              currentProductId={featuredProduct?.productId ?? null}
+              currentProductId={orderableFeaturedProduct?.productId ?? null}
               onSelect={openProductModal}
               variant="overlay"
               className="pr-0.5"
@@ -305,7 +308,7 @@ export default function LivePage() {
 
           <LiveProductPanel
             products={shownProducts}
-            currentProductId={featuredProduct?.productId ?? null}
+            currentProductId={orderableFeaturedProduct?.productId ?? null}
             cartActive={cartActive}
             onSelect={openProductModal}
           />
