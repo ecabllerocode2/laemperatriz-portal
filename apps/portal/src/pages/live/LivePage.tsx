@@ -48,7 +48,7 @@ export default function LivePage() {
   const { openCartModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = depositStatus === "approved";
   const { session, featuredProduct, featuredHistory, loading, refreshing, error, reload } =
-    usePortalLive(true, 8_000);
+    usePortalLive(true);
   const authorName = profile?.name ?? "Clienta";
   const [embedRefreshKey, setEmbedRefreshKey] = useState(0);
   const { comments, chatActive, sending, error: chatError, sendComment } = useLiveChat(

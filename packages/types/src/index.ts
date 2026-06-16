@@ -579,6 +579,19 @@ export interface PortalLiveResponse {
   session: PortalLiveSession | null;
 }
 
+/** Snapshot en RTDB (`livePublic/current`) — push en tiempo real sin polling Firestore. */
+export interface LivePublicSnapshot {
+  sessionId: string;
+  name: string;
+  startedAt: string | null;
+  facebookVideoUrl: string | null;
+  embedUrl: string | null;
+  featuredProduct: PortalFeaturedProduct | null;
+  featuredHistory: PortalFeaturedProduct[];
+  version: number;
+  updatedAt: number;
+}
+
 export interface PortalLiveOrderResult {
   noteId: string;
   productId: string;
