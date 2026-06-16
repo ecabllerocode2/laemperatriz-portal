@@ -141,6 +141,11 @@ a,
   mask-image: linear-gradient(to top, #000 0%, #000 52%, transparent 96%);
 }
 
+.live-scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
 @media (min-width: 640px) {
   @keyframes sheet-up {
     from {

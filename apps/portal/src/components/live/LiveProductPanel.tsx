@@ -32,7 +32,7 @@ export default function LiveProductPanel({
         </p>
       </div>
 
-      <div className="max-h-[min(28rem,calc(100vh-16rem))] space-y-2 overflow-y-auto overscroll-contain pr-1">
+      <div className="live-scroll-touch max-h-[min(28rem,calc(100vh-16rem))] min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1">
         {products.map((product) => {
           const isCurrent = product.productId === currentProductId;
           const soldOut = product.stock < 1;

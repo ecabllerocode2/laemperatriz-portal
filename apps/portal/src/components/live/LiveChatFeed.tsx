@@ -39,9 +39,9 @@ export default function LiveChatFeed({
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className={`touch-pan-y ${
+      className={`live-scroll-touch touch-pan-y ${
         isOverlay
-          ? "live-overlay-fade pointer-events-auto max-h-[55vh] w-1/2 overflow-y-auto overscroll-contain scrollbar-none"
+          ? "live-overlay-fade pointer-events-auto h-[min(55vh,16rem)] max-h-[min(55vh,16rem)] w-1/2 min-h-0 overflow-y-auto overscroll-contain scrollbar-none"
           : "w-full"
       } ${className}`}
     >

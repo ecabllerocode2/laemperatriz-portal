@@ -31,7 +31,7 @@ export default function FacebookLiveEmbed({
         <iframe
           src={embedUrl}
           title={title}
-          className="absolute inset-0 size-full border-0"
+          className={`absolute inset-0 size-full border-0 ${isFullscreen ? "pointer-events-none" : ""}`}
           allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
           allowFullScreen
           loading="lazy"

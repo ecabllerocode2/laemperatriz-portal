@@ -44,10 +44,10 @@ export default function LiveProductStack({
   return (
     <div
       ref={scrollRef}
-      className={`touch-pan-y ${
+      className={`live-scroll-touch touch-pan-y ${
         isOverlay
-          ? "live-overlay-fade pointer-events-auto max-h-[55vh] w-1/2 overflow-y-auto overscroll-contain scrollbar-none"
-          : "max-h-full w-full overflow-y-auto overscroll-contain"
+          ? "live-overlay-fade pointer-events-auto h-[min(55vh,16rem)] max-h-[min(55vh,16rem)] w-1/2 min-h-0 overflow-y-auto overscroll-contain scrollbar-none"
+          : "max-h-full min-h-0 w-full overflow-y-auto overscroll-contain"
       } ${className}`}
     >
       <div className={`flex flex-col gap-2 ${isOverlay ? "items-end pb-1" : "items-stretch"}`}>
