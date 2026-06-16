@@ -85,6 +85,8 @@ export interface Product {
   price: number;
   stock: number;
   stockAlertThreshold: number;
+  /** Color de nota fijado al dar de alta el producto en inventario. */
+  saleChannel: ProductSaleChannel;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -93,11 +95,14 @@ export interface Product {
 // ─── Sales Note ───────────────────────────────────────────────────────────────
 
 /**
- * Canal de captura de la nota. Define el color y la elegibilidad de pronto pago:
+ * Color de nota asignado al producto en inventario:
  * - `whatsapp` (verde) y `facebook` (azul): elegibles para descuento de pronto pago.
  * - `no_discount` (naranja): nunca recibe descuento de pronto pago.
  */
-export type SaleChannel = "whatsapp" | "facebook" | "no_discount";
+export type ProductSaleChannel = "whatsapp" | "facebook" | "no_discount";
+
+/** Canal de una nota; `mixed` cuando agrupa productos de distintos colores. */
+export type SaleChannel = ProductSaleChannel | "mixed";
 
 /**
  * Estado de pago de la nota/ticket diario dentro de un ciclo.
@@ -116,6 +121,8 @@ export interface SaleNoteItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  /** Snapshot del color del producto al momento de la venta. */
+  channel?: ProductSaleChannel;
 }
 
 /**
@@ -134,7 +141,7 @@ export interface SaleNote {
   customerId: string;
   /** Ciclo de compras al que pertenece esta nota. */
   cycleId: string;
-  /** Canal/color de la nota. */
+  /** Color de la nota; `mixed` si los ítems tienen distintos colores. */
   channel: SaleChannel;
   items: SaleNoteItem[];
   subtotal: number;
@@ -418,6 +425,10 @@ export interface PortalSaleNote {
   earlyPayRemainingMs?: number;
   /** true cuando el live terminó y ya corre el timer de 24h. */
   earlyPayTimerStarted?: boolean;
+  /** Subtotal de ítems azul/verde sobre el que aplica el descuento. */
+  earlyPayEligibleSubtotal?: number;
+  /** true cuando el descuento de pronto pago está activo ahora mismo. */
+  earlyPayActive?: boolean;
 }
 
 /** Aviso de liquidación (notas o envío) en el portal. */
@@ -545,7 +556,12 @@ export interface PortalFeaturedProduct {
   price: number;
   stock: number;
   imageUrl: string | null;
+  /** Todas las imágenes del producto (orden de inventario). */
+  imageUrls: string[];
   shownAt: string | null;
+  saleChannel: ProductSaleChannel;
+  /** % de pronto pago si el producto es elegible (0 si naranja). */
+  earlyPayDiscountPercent: number;
 }
 
 /** Sesión en vivo activa visible para clientas en el portal. */

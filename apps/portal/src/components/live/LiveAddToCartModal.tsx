@@ -1,7 +1,9 @@
-import { useEffect, useId, useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { Minus, Plus, X, ZoomIn } from "lucide-react";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
+import LiveProductImageLightbox from "@/components/live/LiveProductImageLightbox";
 import { formatCurrency } from "@/lib/format";
+import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
 
 interface LiveAddToCartModalProps {
   open: boolean;
@@ -11,6 +13,11 @@ interface LiveAddToCartModalProps {
   onClose: () => void;
   onConfirm: (quantity: number) => void;
   onActivateCart: () => void;
+}
+
+function productImages(product: PortalFeaturedProduct): string[] {
+  if (product.imageUrls.length > 0) return product.imageUrls;
+  return product.imageUrl ? [product.imageUrl] : [];
 }
 
 export default function LiveAddToCartModal({
@@ -24,9 +31,13 @@ export default function LiveAddToCartModal({
 }: LiveAddToCartModalProps) {
   const titleId = useId();
   const [quantity, setQuantity] = useState(1);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   useEffect(() => {
-    if (open) setQuantity(1);
+    if (open) {
+      setQuantity(1);
+      setGalleryOpen(false);
+    }
   }, [open, product?.productId]);
 
   useEffect(() => {
@@ -36,7 +47,7 @@ export default function LiveAddToCartModal({
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && !galleryOpen) onClose();
     };
     window.addEventListener("keydown", onKeyDown);
 
@@ -44,114 +55,177 @@ export default function LiveAddToCartModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [open, onClose, galleryOpen]);
 
-  if (!open || !product) return null;
+  const pricing = useMemo(() => {
+    if (!product) return null;
+    return earlyPayLineTotal(product.price, quantity, product.earlyPayDiscountPercent);
+  }, [product, quantity]);
+
+  if (!open || !product || !pricing) return null;
 
   const maxQty = Math.max(1, product.stock);
   const safeQty = Math.min(quantity, maxQty);
+  const channel = saleChannelOption(product.saleChannel);
+  const hasEarlyPay = product.earlyPayDiscountPercent > 0;
+  const images = productImages(product);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label="Cerrar"
-        className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
-        onClick={onClose}
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md animate-sheet-up rounded-t-3xl bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-5"
-      >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-neutral-200 sm:hidden" />
-
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <h2 id={titleId} className="font-display text-xl text-brand-night">
-            Apartar pieza
-          </h2>
-          <button
-            type="button"
-            aria-label="Cerrar"
-            onClick={onClose}
-            className="flex size-9 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="size-24 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-            {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-brand-night">{product.name}</p>
-            <p className="mt-1 text-lg font-bold text-brand-red">{formatCurrency(product.price)}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
-            </p>
-            <span className="mt-2 inline-flex rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
-              Canal azul · elegible para pronto pago
-            </span>
-          </div>
-        </div>
-
-        {!cartActive ? (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Activa tu carrito con el depósito para poder apartar piezas en el live.
-          </div>
-        ) : (
-          <div className="mt-5">
-            <span className="mb-2 block text-sm font-medium text-brand-night">Cantidad</span>
-            <div className="inline-flex items-center rounded-xl border border-neutral-200 bg-neutral-50">
-              <button
-                type="button"
-                aria-label="Menos"
-                disabled={safeQty <= 1 || submitting}
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
-              >
-                <Minus className="size-4" />
-              </button>
-              <span className="min-w-10 text-center text-base font-semibold text-brand-night">
-                {safeQty}
-              </span>
-              <button
-                type="button"
-                aria-label="Más"
-                disabled={safeQty >= maxQty || submitting}
-                onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
-              >
-                <Plus className="size-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
+    <>
+      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
         <button
           type="button"
-          disabled={submitting || (cartActive && product.stock < 1)}
-          onClick={() => {
-            if (!cartActive) {
-              onActivateCart();
-              return;
-            }
-            onConfirm(safeQty);
-          }}
-          className="mt-5 w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Cerrar"
+          className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"
+          onClick={onClose}
+        />
+
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          className="relative z-10 w-full max-w-md animate-sheet-up rounded-t-3xl bg-white/95 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] backdrop-blur-md sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-5"
         >
-          {submitting
-            ? "Agregando..."
-            : cartActive
-              ? "Agregar a mi carrito"
-              : "Activar carrito"}
-        </button>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-neutral-200 sm:hidden" />
+
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h2 id={titleId} className="font-display text-xl text-brand-night">
+              Apartar pieza
+            </h2>
+            <button
+              type="button"
+              aria-label="Cerrar"
+              onClick={onClose}
+              className="flex size-9 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="button"
+              aria-label="Ver fotos del producto"
+              disabled={images.length === 0}
+              onClick={() => images.length > 0 && setGalleryOpen(true)}
+              className="group relative size-24 shrink-0 overflow-hidden rounded-xl bg-neutral-100 disabled:cursor-default"
+            >
+              {product.imageUrl ? (
+                <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
+              ) : null}
+              {images.length > 0 ? (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition group-hover:opacity-100">
+                    <ZoomIn className="size-4" />
+                  </span>
+                </span>
+              ) : null}
+              {images.length > 1 ? (
+                <span className="absolute bottom-1 right-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  {images.length}
+                </span>
+              ) : null}
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-brand-night">{product.name}</p>
+              {hasEarlyPay ? (
+                <div className="mt-1 space-y-0.5">
+                  <p className="text-sm text-neutral-400 line-through">
+                    {formatCurrency(pricing.subtotal)}
+                  </p>
+                  <p className="text-lg font-bold text-brand-red">
+                    {formatCurrency(pricing.total)} con pronto pago
+                  </p>
+                  <p className="text-xs font-medium text-emerald-700">
+                    Ahorras {formatCurrency(pricing.discount)} ({product.earlyPayDiscountPercent}%)
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1 text-lg font-bold text-brand-red">
+                  {formatCurrency(pricing.subtotal)}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-neutral-500">
+                {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
+              </p>
+              <span
+                className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${channel.badgeClass}`}
+              >
+                Canal {channel.label.toLowerCase()}
+                {hasEarlyPay ? " · elegible para pronto pago" : " · sin pronto pago"}
+              </span>
+            </div>
+          </div>
+
+          {!cartActive ? (
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-900">
+              Activa tu carrito con el depósito para poder apartar piezas en el live.
+            </div>
+          ) : (
+            <div className="mt-5">
+              <span className="mb-2 block text-sm font-medium text-brand-night">Cantidad</span>
+              <div className="inline-flex items-center rounded-xl border border-neutral-200 bg-neutral-50/90">
+                <button
+                  type="button"
+                  aria-label="Menos"
+                  disabled={safeQty <= 1 || submitting}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span className="min-w-10 text-center text-base font-semibold text-brand-night">
+                  {safeQty}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Más"
+                  disabled={safeQty >= maxQty || submitting}
+                  onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                  className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+              {hasEarlyPay && safeQty > 1 ? (
+                <p className="mt-2 text-xs text-neutral-500">
+                  Total con pronto pago:{" "}
+                  {formatCurrency(
+                    earlyPayLineTotal(product.price, safeQty, product.earlyPayDiscountPercent)
+                      .total,
+                  )}
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          <button
+            type="button"
+            disabled={submitting || (cartActive && product.stock < 1)}
+            onClick={() => {
+              if (!cartActive) {
+                onActivateCart();
+                return;
+              }
+              onConfirm(safeQty);
+            }}
+            className="mt-5 w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting
+              ? "Agregando..."
+              : cartActive
+                ? "Agregar a mi carrito"
+                : "Activar carrito"}
+          </button>
+        </div>
       </div>
-    </div>
+
+      <LiveProductImageLightbox
+        open={galleryOpen}
+        images={images}
+        productName={product.name}
+        onClose={() => setGalleryOpen(false)}
+      />
+    </>
   );
 }
