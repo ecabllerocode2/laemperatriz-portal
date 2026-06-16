@@ -15,10 +15,6 @@ export default function FacebookLiveEmbed({
 }: FacebookLiveEmbedProps) {
   const isFullscreen = layout === "vertical-fullscreen";
 
-  const hintPosition = isFullscreen
-    ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"
-    : "top-1/2 -translate-y-1/2";
-
   return (
     <div
       className={
@@ -43,7 +39,9 @@ export default function FacebookLiveEmbed({
           loading="lazy"
         />
 
-        <LiveSoundHint sessionKey={sessionKey} className={hintPosition} />
+        {!isFullscreen ? (
+          <LiveSoundHint sessionKey={sessionKey} className="top-1/2 -translate-y-1/2" />
+        ) : null}
       </div>
     </div>
   );

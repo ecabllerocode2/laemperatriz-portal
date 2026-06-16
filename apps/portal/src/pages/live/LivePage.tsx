@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, Radio, RefreshCw } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import FacebookLiveEmbed from "@/components/live/FacebookLiveEmbed";
+import LiveSoundHint from "@/components/live/LiveSoundHint";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
 import LiveChatFeed from "@/components/live/LiveChatFeed";
 import LiveChatInput from "@/components/live/LiveChatInput";
@@ -178,6 +179,17 @@ export default function LivePage() {
               className="pr-0.5"
             />
           </div>
+
+          {session?.embedUrl ? (
+            <LiveSoundHint
+              sessionKey={session.id}
+              className={
+                cartActive
+                  ? "top-[calc(5rem+env(safe-area-inset-top))]"
+                  : "top-[calc(7.25rem+env(safe-area-inset-top))]"
+              }
+            />
+          ) : null}
         </div>
 
         <div className="relative z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">

@@ -25,9 +25,9 @@ export default function LiveSoundHint({ sessionKey = null, className = "" }: Liv
 
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 z-40 flex justify-center px-4 ${className}`}
+      className={`pointer-events-none absolute inset-x-0 z-50 flex justify-center px-4 ${className}`}
     >
-      <div className="pointer-events-auto flex max-w-xs items-start gap-2 rounded-xl border border-white/20 bg-black/85 px-3 py-2.5 text-left text-white shadow-lg backdrop-blur-sm">
+      <div className="pointer-events-auto relative z-50 flex max-w-[min(100%,16rem)] items-start gap-2 rounded-xl border border-white/20 bg-black/90 px-3 py-2.5 text-left text-white shadow-xl backdrop-blur-sm">
         <Volume2 className="mt-0.5 size-4 shrink-0 text-brand-gold" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold leading-snug">Activa el audio</p>
