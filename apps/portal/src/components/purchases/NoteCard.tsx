@@ -66,7 +66,7 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
       {note.earlyPayEligible && pending && !note.earlyPayTimerStarted ? (
         <div className="mt-2 flex items-center gap-1.5 text-xs text-neutral-600">
           <Clock className="h-3.5 w-3.5" />
-          Pronto pago disponible al terminar el live
+          Pronto pago disponible al terminar el live o al comprar en tienda
         </div>
       ) : null}
 

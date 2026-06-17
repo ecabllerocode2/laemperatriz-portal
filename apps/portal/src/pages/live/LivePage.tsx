@@ -159,9 +159,9 @@ export default function LivePage() {
       <div className="fixed inset-0 z-10 flex flex-col bg-black lg:hidden">
         <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 pb-8 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
-            to="/"
+            to="/compras"
             className="flex size-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-            aria-label="Volver a compras"
+            aria-label="Volver a mis compras"
           >
             <ArrowLeft className="size-4" />
           </Link>
@@ -332,7 +332,7 @@ export default function LivePage() {
                 Ver en Facebook
               </a>
               <Link
-                to="/"
+                to="/compras"
                 className="inline-flex items-center gap-2 rounded-full bg-brand-night px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-night/90"
               >
                 Ir a mis compras

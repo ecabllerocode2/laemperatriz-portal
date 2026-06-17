@@ -9,6 +9,8 @@ import PaymentsPage from "@/pages/payments/PaymentsPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
 import LivePage from "@/pages/live/LivePage";
 import PurchasesPage from "@/pages/purchases/PurchasesPage";
+import StorePage from "@/pages/store/StorePage";
+import StoreProductDetailPage from "@/pages/store/StoreProductDetailPage";
 import ShippingPage from "@/pages/shipping/ShippingPage";
 
 const router = createBrowserRouter([
@@ -38,7 +40,9 @@ const router = createBrowserRouter([
       {
         element: <PortalLayout />,
         children: [
-          { index: true, element: <PurchasesPage /> },
+          { index: true, element: <StorePage /> },
+          { path: "tienda/:productId", element: <StoreProductDetailPage /> },
+          { path: "compras", element: <PurchasesPage /> },
           { path: "live", element: <LivePage /> },
           { path: "envios", element: <ShippingPage /> },
           { path: "pagos", element: <PaymentsPage /> },

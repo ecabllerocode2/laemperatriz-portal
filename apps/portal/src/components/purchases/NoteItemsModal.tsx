@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import SaleOriginBadge from "@/components/purchases/SaleOriginBadge";
 import type { PortalSaleNote } from "@emperatriz/types";
 import { formatCurrency } from "@/lib/format";
 
@@ -39,7 +40,10 @@ export default function NoteItemsModal({ note, onClose }: NoteItemsModalProps) {
                 ) : null}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-brand-night">{item.name}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-brand-night">{item.name}</p>
+                  <SaleOriginBadge origin={item.saleOrigin} />
+                </div>
                 <p className="text-xs text-neutral-500">
                   {item.quantity} pz · {formatCurrency(item.unitPrice)} c/u
                 </p>

@@ -115,6 +115,9 @@ export interface Product {
  */
 export type ProductSaleChannel = "whatsapp" | "facebook" | "no_discount";
 
+/** Origen de la venta dentro del portal (live vs tienda en línea). */
+export type SaleOrigin = "live" | "store";
+
 /** Canal de una nota; `mixed` cuando agrupa productos de distintos colores. */
 export type SaleChannel = ProductSaleChannel | "mixed";
 
@@ -141,6 +144,8 @@ export interface SaleNoteItem {
   variantId?: string;
   variantColor?: string;
   variantSize?: string;
+  /** Dónde se apartó la pieza: transmisión en vivo o tienda en línea. */
+  saleOrigin?: SaleOrigin;
 }
 
 /**
@@ -582,6 +587,31 @@ export interface PortalFeaturedProduct {
   earlyPayDiscountPercent: number;
   /** Variantes disponibles al mostrar (stock por color/talla). */
   variants?: ProductVariant[];
+}
+
+/** Producto listado en la tienda en línea del portal. */
+export interface PortalStoreProduct {
+  productId: string;
+  name: string;
+  description?: string;
+  sku: string;
+  categoryId: string;
+  price: number;
+  stock: number;
+  imageUrl: string | null;
+  imageUrls: string[];
+  saleChannel: ProductSaleChannel;
+  earlyPayDiscountPercent: number;
+  variants?: ProductVariant[];
+}
+
+export interface PortalStoreProductsResponse {
+  products: PortalStoreProduct[];
+  pagination: {
+    limit: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
 }
 
 /** Sesión en vivo activa visible para clientas en el portal. */

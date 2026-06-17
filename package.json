@@ -7,6 +7,7 @@
     "dev": "pnpm --filter @emperatriz/portal dev",
     "build": "pnpm --filter @emperatriz/portal build",
     "type-check": "pnpm --filter @emperatriz/portal type-check",
+    "test": "pnpm --filter @emperatriz/portal test",
     "preview": "pnpm --filter @emperatriz/portal preview"
   },
   "devDependencies": {

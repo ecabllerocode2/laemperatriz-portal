@@ -49,8 +49,8 @@ export default function PurchasesPage() {
         <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
           <p>
             Has pedido{" "}
-            {formatCurrency(privateSnapshot.thresholdBlock.orderedTotal)}. Para seguir apartando en
-            el live, liquida{" "}
+            {formatCurrency(privateSnapshot.thresholdBlock.orderedTotal)}. Para seguir apartando,
+            liquida{" "}
             {formatCurrency(privateSnapshot.thresholdBlock.depositDue)}.
           </p>
           <button
