@@ -361,6 +361,8 @@ export default function LivePage() {
         open={modalOpen}
         product={selectedProduct}
         cartActive={cartActive}
+        blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
+        thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
         submitting={submitting}
         onClose={() => {
           setModalOpen(false);
@@ -368,6 +370,7 @@ export default function LivePage() {
         }}
         onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
         onActivateCart={openCartModal}
+        onPayThreshold={handlePayThreshold}
       />
     </>
   );

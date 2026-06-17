@@ -1,9 +1,13 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Minus, Plus, X, ZoomIn } from "lucide-react";
-import type { PortalFeaturedProduct } from "@emperatriz/types";
+import type { PortalBlockReason, PortalFeaturedProduct } from "@emperatriz/types";
 import LiveProductImageLightbox from "@/components/live/LiveProductImageLightbox";
 import VariantPicker from "@/components/live/VariantPicker";
 import { formatCurrency } from "@/lib/format";
+import {
+  livePurchaseBlockMessage,
+  resolveLivePurchaseBlockKind,
+} from "@/lib/live-purchase-block";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   normalizeProductVariants,
@@ -16,6 +20,11 @@ interface LiveAddToCartModalProps {
   open: boolean;
   product: PortalFeaturedProduct | null;
   cartActive: boolean;
+  blockReason?: PortalBlockReason;
+  thresholdBlock?: {
+    orderedTotal: number;
+    depositDue: number;
+  } | null;
   submitting?: boolean;
   onClose: () => void;
   onConfirm: (
@@ -23,6 +32,7 @@ interface LiveAddToCartModalProps {
     variant: { id: string; color: string; size: string },
   ) => void;
   onActivateCart: () => void;
+  onPayThreshold?: () => void;
 }
 
 function productImages(product: PortalFeaturedProduct): string[] {
@@ -34,10 +44,13 @@ export default function LiveAddToCartModal({
   open,
   product,
   cartActive,
+  blockReason = "cart_opening_required",
+  thresholdBlock = null,
   submitting = false,
   onClose,
   onConfirm,
   onActivateCart,
+  onPayThreshold,
 }: LiveAddToCartModalProps) {
   const titleId = useId();
   const [quantity, setQuantity] = useState(1);
@@ -85,6 +98,9 @@ export default function LiveAddToCartModal({
     if (!product) return null;
     return earlyPayLineTotal(product.price, quantity, product.earlyPayDiscountPercent);
   }, [product, quantity]);
+
+  const blockKind = resolveLivePurchaseBlockKind({ canPurchase: cartActive, blockReason });
+  const blockMessage = livePurchaseBlockMessage(blockReason, thresholdBlock ?? undefined);
 
   if (!open || !product || !pricing) return null;
 
@@ -181,9 +197,9 @@ export default function LiveAddToCartModal({
             </div>
           </div>
 
-          {!cartActive ? (
+          {blockKind !== "none" && blockMessage ? (
             <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-900">
-              Activa tu carrito con el depósito para poder apartar piezas en el live.
+              {blockMessage}
             </div>
           ) : (
             <>
@@ -246,8 +262,16 @@ export default function LiveAddToCartModal({
             type="button"
             disabled={submitting || (cartActive && availableStock < 1)}
             onClick={() => {
-              if (!cartActive) {
+              if (blockKind === "cart_opening") {
                 onActivateCart();
+                return;
+              }
+              if (blockKind === "threshold") {
+                onPayThreshold?.();
+                return;
+              }
+              if (blockKind === "pending_review") {
+                onClose();
                 return;
               }
               const variantId = resolveConfirmVariantId(variants, selectedVariantId);
@@ -270,9 +294,13 @@ export default function LiveAddToCartModal({
           >
             {submitting
               ? "Agregando..."
-              : cartActive
+              : blockKind === "none"
                 ? "Agregar a mi carrito"
-                : "Activar carrito"}
+                : blockKind === "threshold"
+                  ? "Subir comprobante"
+                  : blockKind === "pending_review"
+                    ? "Entendido"
+                    : "Activar carrito"}
           </button>
         </div>
       </div>

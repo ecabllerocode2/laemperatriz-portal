@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { PortalBlockReason, PortalPrivateToast } from "@emperatriz/types";
+import { livePurchaseBlockMessage } from "@/lib/live-purchase-block";
 
 interface LivePurchaseGateProps {
   canPurchase: boolean;
@@ -16,29 +17,6 @@ interface LivePurchaseGateProps {
   variant?: "overlay" | "inline";
 }
 
-function blockMessage(
-  blockReason: PortalBlockReason,
-  threshold?: { orderedTotal: number; depositDue: number },
-): string | null {
-  switch (blockReason) {
-    case "cart_pending_review":
-      return "Tu comprobante está en revisión. Te avisaremos cuando puedas apartar.";
-    case "threshold_block":
-      if (threshold && threshold.depositDue > 0) {
-        return `Has pedido ${threshold.orderedTotal.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}. Liquida ${threshold.depositDue.toLocaleString("es-MX", { style: "currency", currency: "MXN" })} para seguir apartando.`;
-      }
-      return "Liquida el saldo pendiente de tu ciclo para seguir apartando.";
-    case "cycle_completed":
-      return "Tu ciclo terminó. Abre un nuevo carrito con $200 para seguir comprando.";
-    case "cycle_closed":
-      return "Tu ciclo anterior cerró. Activa un carrito nuevo para apartar en el live.";
-    case "cart_opening_required":
-      return "Para apartar piezas, activa tu carrito con el depósito de $200.";
-    default:
-      return null;
-  }
-}
-
 export default function LivePurchaseGate({
   canPurchase,
   blockReason,
@@ -51,7 +29,7 @@ export default function LivePurchaseGate({
   variant = "overlay",
 }: LivePurchaseGateProps) {
   const showToast = toast && toast.id !== dismissedToastId;
-  const bannerText = blockMessage(blockReason, thresholdBlock ?? undefined);
+  const bannerText = livePurchaseBlockMessage(blockReason, thresholdBlock ?? undefined);
 
   if (canPurchase && !showToast) return null;
 
