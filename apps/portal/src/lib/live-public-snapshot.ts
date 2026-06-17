@@ -1,10 +1,31 @@
-import type { LivePublicSnapshot, PortalFeaturedProduct, PortalLiveSession } from "@emperatriz/types";
+import type { LivePublicSnapshot, PortalFeaturedProduct, PortalLiveSession, ProductVariant } from "@emperatriz/types";
+
+function parseVariants(raw: unknown): ProductVariant[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const variants = raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const id = typeof row["id"] === "string" ? row["id"] : "";
+      if (!id) return null;
+      return {
+        id,
+        color: typeof row["color"] === "string" ? row["color"] : "No aplica",
+        size: typeof row["size"] === "string" ? row["size"] : "No aplica",
+        stock: typeof row["stock"] === "number" ? row["stock"] : 0,
+      } satisfies ProductVariant;
+    })
+    .filter((item): item is ProductVariant => item !== null);
+  return variants.length > 0 ? variants : undefined;
+}
 
 function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Record<string, unknown>;
   const productId = typeof row["productId"] === "string" ? row["productId"] : "";
   if (!productId) return null;
+
+  const parsedVariants = parseVariants(row["variants"]);
 
   return {
     productId,
@@ -24,6 +45,7 @@ function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
         : "no_discount",
     earlyPayDiscountPercent:
       typeof row["earlyPayDiscountPercent"] === "number" ? row["earlyPayDiscountPercent"] : 0,
+    ...(parsedVariants ? { variants: parsedVariants } : {}),
   };
 }
 

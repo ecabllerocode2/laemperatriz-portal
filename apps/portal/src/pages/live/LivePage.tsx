@@ -77,7 +77,7 @@ export default function LivePage() {
     setModalOpen(true);
   };
 
-  const handleConfirmOrder = async (quantity: number) => {
+  const handleConfirmOrder = async (quantity: number, variantId?: string) => {
     if (!selectedProduct || !cartActive) return;
 
     setSubmitting(true);
@@ -85,6 +85,7 @@ export default function LivePage() {
       const result = await createPortalLiveOrder({
         productId: selectedProduct.productId,
         quantity,
+        ...(variantId ? { variantId } : {}),
         ...(session?.id ? { liveSessionId: session.id } : {}),
       });
       setModalOpen(false);
@@ -342,7 +343,7 @@ export default function LivePage() {
           setModalOpen(false);
           setSelectedProduct(null);
         }}
-        onConfirm={(quantity) => void handleConfirmOrder(quantity)}
+        onConfirm={(quantity, variantId) => void handleConfirmOrder(quantity, variantId)}
         onActivateCart={openCartModal}
       />
     </>

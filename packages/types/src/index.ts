@@ -72,6 +72,17 @@ export interface ProductImage {
   order: number;
 }
 
+/** Valor por defecto cuando color/talla no aplican al producto. */
+export const VARIANT_NOT_APPLICABLE = "No aplica";
+
+/** Variante de inventario (color, talla, stock propio). */
+export interface ProductVariant {
+  id: string;
+  color: string;
+  size: string;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   /** Format: EMP-[CAT3]-[0000] */
@@ -83,7 +94,10 @@ export interface Product {
   /** Visible only for admin role */
   cost: number;
   price: number;
+  /** Total de piezas (suma de variantes). */
   stock: number;
+  /** Variantes con color/talla; si falta, se asume una sola variante "No aplica". */
+  variants?: ProductVariant[];
   stockAlertThreshold: number;
   /** Color de nota fijado al dar de alta el producto en inventario. */
   saleChannel: ProductSaleChannel;
@@ -123,6 +137,10 @@ export interface SaleNoteItem {
   subtotal: number;
   /** Snapshot del color del producto al momento de la venta. */
   channel?: ProductSaleChannel;
+  /** Variante vendida (color/talla de joyería). */
+  variantId?: string;
+  variantColor?: string;
+  variantSize?: string;
 }
 
 /**
@@ -562,6 +580,8 @@ export interface PortalFeaturedProduct {
   saleChannel: ProductSaleChannel;
   /** % de pronto pago si el producto es elegible (0 si naranja). */
   earlyPayDiscountPercent: number;
+  /** Variantes disponibles al mostrar (stock por color/talla). */
+  variants?: ProductVariant[];
 }
 
 /** Sesión en vivo activa visible para clientas en el portal. */
@@ -598,4 +618,7 @@ export interface PortalLiveOrderResult {
   productName: string;
   quantity: number;
   total: number;
+  variantId?: string;
+  variantColor?: string;
+  variantSize?: string;
 }

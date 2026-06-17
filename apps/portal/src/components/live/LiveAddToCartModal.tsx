@@ -2,7 +2,13 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { Minus, Plus, X, ZoomIn } from "lucide-react";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
 import LiveProductImageLightbox from "@/components/live/LiveProductImageLightbox";
+import VariantPicker from "@/components/live/VariantPicker";
 import { formatCurrency } from "@/lib/format";
+import {
+  normalizeProductVariants,
+  resolveAutoVariantId,
+  variantsNeedSelection,
+} from "@/lib/product-variants";
 import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
 
 interface LiveAddToCartModalProps {
@@ -11,7 +17,7 @@ interface LiveAddToCartModalProps {
   cartActive: boolean;
   submitting?: boolean;
   onClose: () => void;
-  onConfirm: (quantity: number) => void;
+  onConfirm: (quantity: number, variantId?: string) => void;
   onActivateCart: () => void;
 }
 
@@ -31,14 +37,30 @@ export default function LiveAddToCartModal({
 }: LiveAddToCartModalProps) {
   const titleId = useId();
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
+
+  const variants = useMemo(
+    () => (product ? normalizeProductVariants(product) : []),
+    [product],
+  );
+  const needsVariant = variantsNeedSelection(variants);
+  const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? null;
+  const availableStock = selectedVariant?.stock ?? product?.stock ?? 0;
 
   useEffect(() => {
     if (open) {
       setQuantity(1);
+      setSelectedVariantId(resolveAutoVariantId(variants));
       setGalleryOpen(false);
     }
-  }, [open, product?.productId]);
+  }, [open, product?.productId, variants]);
+
+  useEffect(() => {
+    if (selectedVariant && quantity > selectedVariant.stock) {
+      setQuantity(Math.max(1, selectedVariant.stock));
+    }
+  }, [selectedVariant, quantity]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,11 +86,15 @@ export default function LiveAddToCartModal({
 
   if (!open || !product || !pricing) return null;
 
-  const maxQty = Math.max(1, product.stock);
+  const maxQty = Math.max(1, availableStock);
   const safeQty = Math.min(quantity, maxQty);
   const channel = saleChannelOption(product.saleChannel);
   const hasEarlyPay = product.earlyPayDiscountPercent > 0;
   const images = productImages(product);
+  const canConfirm =
+    cartActive &&
+    availableStock >= 1 &&
+    (!needsVariant || selectedVariantId !== null);
 
   return (
     <>
@@ -146,7 +172,7 @@ export default function LiveAddToCartModal({
                 </p>
               )}
               <p className="mt-1 text-xs text-neutral-500">
-                {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
+                {availableStock > 0 ? `${availableStock} disponibles` : "Agotado"}
               </p>
               <span
                 className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${channel.badgeClass}`}
@@ -162,52 +188,63 @@ export default function LiveAddToCartModal({
               Activa tu carrito con el depósito para poder apartar piezas en el live.
             </div>
           ) : (
-            <div className="mt-5">
-              <span className="mb-2 block text-sm font-medium text-brand-night">Cantidad</span>
-              <div className="inline-flex items-center rounded-xl border border-neutral-200 bg-neutral-50/90">
-                <button
-                  type="button"
-                  aria-label="Menos"
-                  disabled={safeQty <= 1 || submitting}
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
-                >
-                  <Minus className="size-4" />
-                </button>
-                <span className="min-w-10 text-center text-base font-semibold text-brand-night">
-                  {safeQty}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Más"
-                  disabled={safeQty >= maxQty || submitting}
-                  onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                  className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
-                >
-                  <Plus className="size-4" />
-                </button>
+            <>
+              <div className="mt-5">
+                <VariantPicker
+                  variants={variants}
+                  selectedVariantId={selectedVariantId}
+                  onSelect={setSelectedVariantId}
+                  disabled={submitting}
+                />
               </div>
-              {hasEarlyPay && safeQty > 1 ? (
-                <p className="mt-2 text-xs text-neutral-500">
-                  Total con pronto pago:{" "}
-                  {formatCurrency(
-                    earlyPayLineTotal(product.price, safeQty, product.earlyPayDiscountPercent)
-                      .total,
-                  )}
-                </p>
-              ) : null}
-            </div>
+
+              <div className="mt-5">
+                <span className="mb-2 block text-sm font-medium text-brand-night">Cantidad</span>
+                <div className="inline-flex items-center rounded-xl border border-neutral-200 bg-neutral-50/90">
+                  <button
+                    type="button"
+                    aria-label="Menos"
+                    disabled={safeQty <= 1 || submitting}
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
+                  >
+                    <Minus className="size-4" />
+                  </button>
+                  <span className="min-w-10 text-center text-base font-semibold text-brand-night">
+                    {safeQty}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Más"
+                    disabled={safeQty >= maxQty || submitting}
+                    onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                    className="flex size-11 items-center justify-center text-brand-night disabled:opacity-40"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
+                {hasEarlyPay && safeQty > 1 ? (
+                  <p className="mt-2 text-xs text-neutral-500">
+                    Total con pronto pago:{" "}
+                    {formatCurrency(
+                      earlyPayLineTotal(product.price, safeQty, product.earlyPayDiscountPercent)
+                        .total,
+                    )}
+                  </p>
+                ) : null}
+              </div>
+            </>
           )}
 
           <button
             type="button"
-            disabled={submitting || (cartActive && product.stock < 1)}
+            disabled={submitting || (cartActive && !canConfirm)}
             onClick={() => {
               if (!cartActive) {
                 onActivateCart();
                 return;
               }
-              onConfirm(safeQty);
+              onConfirm(safeQty, selectedVariantId ?? undefined);
             }}
             className="mt-5 w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
