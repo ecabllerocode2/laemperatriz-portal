@@ -50,6 +50,7 @@ export default function PortalLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isLivePage = pathname === "/live";
+  const isStorePage = pathname === "/" || pathname.startsWith("/tienda/");
 
   const depositStatus =
     (privateSnapshot?.depositStatus as DepositStatus | undefined) ??
@@ -156,13 +157,18 @@ export default function PortalLayout() {
       }
     >
       <div className={isLivePage ? "max-lg:hidden" : undefined}>
-        <PortalHeader firstName={firstNameFrom(displayName)} />
+        <PortalHeader
+          firstName={firstNameFrom(displayName)}
+          shellVariant={isLivePage ? "live" : isStorePage ? "store" : "default"}
+        />
       </div>
       <main
         className={
           isLivePage
             ? "max-lg:p-0 lg:portal-shell-live lg:space-y-5 lg:py-5"
-            : "portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5"
+            : isStorePage
+              ? "portal-shell-store space-y-4 py-4 sm:space-y-5 sm:py-5 lg:space-y-6 lg:py-6"
+              : "portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5"
         }
       >
         <Outlet

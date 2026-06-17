@@ -136,10 +136,10 @@ export default function StoreProductDetailPage() {
           Volver
         </button>
 
-        <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
           <button
             type="button"
-            className="relative block aspect-[4/5] w-full bg-neutral-100"
+            className="relative block aspect-[4/5] w-full bg-neutral-100 lg:sticky lg:top-6 lg:aspect-auto lg:min-h-[28rem] lg:self-start"
             onClick={() => product.imageUrls.length > 0 && setGalleryOpen(true)}
           >
             {product.imageUrl ? (
@@ -152,7 +152,7 @@ export default function StoreProductDetailPage() {
             ) : null}
           </button>
 
-          <div className="space-y-4 p-5 sm:p-6">
+          <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
             <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${channel.badgeClass}`}
@@ -167,8 +167,10 @@ export default function StoreProductDetailPage() {
             </div>
 
             <div>
-              <h1 className="font-display text-2xl text-brand-night">{product.name}</h1>
-              <p className="mt-1 text-xs text-neutral-500">SKU {product.sku}</p>
+              <h1 className="font-display text-2xl text-brand-night lg:text-3xl xl:text-4xl">
+                {product.name}
+              </h1>
+              <p className="mt-1 text-xs text-neutral-500 lg:text-sm">SKU {product.sku}</p>
             </div>
 
             {hasEarlyPay ? (
@@ -194,7 +196,7 @@ export default function StoreProductDetailPage() {
               type="button"
               disabled={product.stock < 1}
               onClick={() => setModalOpen(true)}
-              className="w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-md lg:text-base"
             >
               {product.stock < 1 ? "Agotado" : "Apartar pieza"}
             </button>

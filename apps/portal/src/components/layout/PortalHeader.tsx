@@ -5,14 +5,24 @@ import { auth } from "@/lib/firebase";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { useAuthStore } from "@/stores/auth.store";
 
+export type PortalShellVariant = "default" | "store" | "live";
+
 interface PortalHeaderProps {
   firstName: string;
   notificationsEnabled?: boolean;
+  shellVariant?: PortalShellVariant;
+}
+
+function shellClassName(variant: PortalShellVariant): string {
+  if (variant === "store") return "portal-shell-store";
+  if (variant === "live") return "portal-shell-live";
+  return "portal-shell";
 }
 
 export default function PortalHeader({
   firstName,
   notificationsEnabled = true,
+  shellVariant = "default",
 }: PortalHeaderProps) {
   const { clearAuth } = useAuthStore();
 
@@ -23,7 +33,7 @@ export default function PortalHeader({
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200/80 bg-white/95 backdrop-blur-sm">
-      <div className="portal-shell flex items-center justify-between gap-2 py-3 sm:gap-3">
+      <div className={`${shellClassName(shellVariant)} flex items-center justify-between gap-2 py-3 sm:gap-3`}>
         <img
           src="/favicon.jpeg"
           alt="La Emperatriz"

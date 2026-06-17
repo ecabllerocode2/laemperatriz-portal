@@ -87,28 +87,30 @@ export default function StorePage() {
           </section>
         ) : null}
 
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-night via-[#252545] to-brand-red px-5 py-7 text-white shadow-lg sm:px-8 sm:py-9">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-night via-[#252545] to-brand-red px-5 py-7 text-white shadow-lg sm:px-8 sm:py-9 lg:flex lg:items-end lg:justify-between lg:gap-10 lg:px-10 lg:py-10">
           <div className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-brand-gold/20 blur-2xl" />
           <div className="pointer-events-none absolute -bottom-10 left-8 size-32 rounded-full bg-brand-red/30 blur-2xl" />
 
-          <div className="relative">
+          <div className="relative lg:max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="size-3.5 text-brand-gold" />
               Tienda La Emperatriz
             </div>
-            <h1 className="mt-3 font-display text-2xl leading-tight sm:text-3xl">
+            <h1 className="mt-3 font-display text-2xl leading-tight sm:text-3xl lg:text-4xl">
               Encuentra tu próxima pieza favorita
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
+            <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base lg:text-lg">
               Aparta con el mismo flujo del live: nota del día, pronto pago y envío en tu ciclo de 7
               días.
             </p>
+          </div>
 
+          <div className="relative lg:shrink-0 lg:pb-1">
             {liveActive ? (
               <button
                 type="button"
                 onClick={() => navigate("/live")}
-                className="live-pulse-cta mt-5 inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-red/30"
+                className="live-pulse-cta mt-5 inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-red/30 lg:mt-0 lg:px-6 lg:py-3.5 lg:text-base"
               >
                 <span className="relative flex size-2.5" aria-hidden>
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-white/80" />
@@ -118,15 +120,15 @@ export default function StorePage() {
                 Entrar al live ahora
               </button>
             ) : !liveLoading ? (
-              <p className="mt-5 text-xs text-white/65">
+              <p className="mt-5 text-xs text-white/65 lg:mt-0 lg:max-w-xs lg:text-sm">
                 Cuando haya transmisión en vivo, verás aquí el acceso directo.
               </p>
             ) : null}
           </div>
         </section>
 
-        <section className="space-y-3">
-          <div className="relative">
+        <section className="space-y-3 lg:space-y-4">
+          <div className="relative lg:max-w-xl">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
             <input
               type="search"
@@ -148,7 +150,7 @@ export default function StorePage() {
           </div>
 
           {categoryOptions.length > 0 ? (
-            <div className="live-scroll-touch flex gap-2 overflow-x-auto pb-1">
+            <div className="live-scroll-touch flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
               <button
                 type="button"
                 onClick={() => setCategoryId(null)}
@@ -207,7 +209,7 @@ export default function StorePage() {
           </section>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 lg:gap-4 xl:gap-5">
               {products.map((product) => (
                 <StoreProductCard
                   key={product.productId}

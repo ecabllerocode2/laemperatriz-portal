@@ -52,8 +52,8 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col p-3">
-        <p className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-brand-night">
+      <div className="flex flex-1 flex-col p-3 lg:p-4">
+        <p className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-brand-night lg:min-h-0 lg:text-[0.9375rem]">
           {product.name}
         </p>
         <div className="mt-auto pt-2">
