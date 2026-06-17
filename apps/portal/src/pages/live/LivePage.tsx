@@ -83,22 +83,28 @@ export default function LivePage() {
     setModalOpen(true);
   };
 
-  const handleConfirmOrder = async (quantity: number, variantId: string) => {
+  const handleConfirmOrder = async (
+    quantity: number,
+    variant: { id: string; color: string; size: string },
+  ) => {
     if (!selectedProduct || !cartActive) return;
 
     setSubmitting(true);
     try {
       const variants = normalizeProductVariants(selectedProduct);
-      const resolvedVariantId = resolveConfirmVariantId(variants, variantId);
+      const resolvedVariantId = resolveConfirmVariantId(variants, variant.id);
       if (!resolvedVariantId) {
         setToast("Elige color o talla para continuar.");
         return;
       }
+      const picked = variants.find((item) => item.id === resolvedVariantId) ?? variant;
 
       const result = await createPortalLiveOrder({
         productId: selectedProduct.productId,
         quantity,
-        variantId: resolvedVariantId,
+        variantId: picked.id,
+        variantColor: picked.color,
+        variantSize: picked.size,
         ...(session?.id ? { liveSessionId: session.id } : {}),
       });
       setModalOpen(false);
@@ -360,7 +366,7 @@ export default function LivePage() {
           setModalOpen(false);
           setSelectedProduct(null);
         }}
-        onConfirm={(quantity, variantId) => void handleConfirmOrder(quantity, variantId)}
+        onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
         onActivateCart={openCartModal}
       />
     </>

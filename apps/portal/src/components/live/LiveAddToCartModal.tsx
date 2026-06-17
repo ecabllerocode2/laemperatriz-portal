@@ -18,7 +18,10 @@ interface LiveAddToCartModalProps {
   cartActive: boolean;
   submitting?: boolean;
   onClose: () => void;
-  onConfirm: (quantity: number, variantId: string) => void;
+  onConfirm: (
+    quantity: number,
+    variant: { id: string; color: string; size: string },
+  ) => void;
   onActivateCart: () => void;
 }
 
@@ -252,7 +255,16 @@ export default function LiveAddToCartModal({
                 setVariantError(true);
                 return;
               }
-              onConfirm(safeQty, variantId);
+              const picked = variants.find((item) => item.id === variantId);
+              if (!picked) {
+                setVariantError(true);
+                return;
+              }
+              onConfirm(safeQty, {
+                id: picked.id,
+                color: picked.color,
+                size: picked.size,
+              });
             }}
             className="mt-5 w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
           >

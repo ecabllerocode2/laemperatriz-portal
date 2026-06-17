@@ -23,7 +23,9 @@ export default function VariantPicker({
 
   return (
     <div className="space-y-2">
-      <span className="block text-sm font-medium text-brand-night">Elige color / talla</span>
+      <span className="block text-sm font-medium text-brand-night">
+        Elige variante (color y talla)
+      </span>
       <div className="flex flex-wrap gap-2">
         {available.map((variant) => {
           const label =

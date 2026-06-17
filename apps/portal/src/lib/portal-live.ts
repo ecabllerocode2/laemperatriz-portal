@@ -10,6 +10,8 @@ export async function createPortalLiveOrder(input: {
   quantity: number;
   liveSessionId?: string;
   variantId?: string;
+  variantColor?: string;
+  variantSize?: string;
 }): Promise<PortalLiveOrderResult> {
   return apiRequest<PortalLiveOrderResult>("/api/portal/live/orders", {
     method: "POST",

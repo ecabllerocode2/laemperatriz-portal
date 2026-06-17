@@ -1,6 +1,7 @@
 import type { ProductVariant } from "@emperatriz/types";
 
 export const VARIANT_NOT_APPLICABLE = "No aplica";
+export const DEFAULT_VARIANT_ID = "default";
 
 export function normalizeProductVariants(
   product: Pick<{ stock: number; variants?: ProductVariant[] }, "stock" | "variants">,
@@ -10,7 +11,7 @@ export function normalizeProductVariants(
   }
   return [
     {
-      id: "default",
+      id: DEFAULT_VARIANT_ID,
       color: VARIANT_NOT_APPLICABLE,
       size: VARIANT_NOT_APPLICABLE,
       stock: product.stock ?? 0,
