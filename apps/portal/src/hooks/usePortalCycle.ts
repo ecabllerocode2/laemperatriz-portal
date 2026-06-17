@@ -8,7 +8,24 @@ const EMPTY: PortalCycleResponse = {
   shippingAddress: null,
 };
 
-export function usePortalCycle(enabled = true) {
+export interface UsePortalCycleOptions {
+  enabled?: boolean;
+  /** Si false, no hace poll periódico (p. ej. en /live). reload() sigue disponible. */
+  pollWhileActive?: boolean;
+}
+
+function resolveOptions(options: boolean | UsePortalCycleOptions): UsePortalCycleOptions {
+  if (typeof options === "boolean") {
+    return { enabled: options, pollWhileActive: true };
+  }
+  return {
+    enabled: options.enabled ?? true,
+    pollWhileActive: options.pollWhileActive ?? true,
+  };
+}
+
+export function usePortalCycle(options: boolean | UsePortalCycleOptions = true) {
+  const { enabled, pollWhileActive } = resolveOptions(options);
   const reloadTick = useUiStore((s) => s.profileReloadTick);
   const [data, setData] = useState<PortalCycleResponse>(EMPTY);
   const [loading, setLoading] = useState(enabled);
@@ -34,10 +51,10 @@ export function usePortalCycle(enabled = true) {
   }, [reload, reloadTick]);
 
   useEffect(() => {
-    if (!enabled || !data?.cycle) return;
+    if (!enabled || !pollWhileActive || !data?.cycle) return;
     const id = window.setInterval(() => void reload(), 60_000);
     return () => window.clearInterval(id);
-  }, [enabled, data?.cycle, reload]);
+  }, [enabled, pollWhileActive, data?.cycle, reload]);
 
   return { ...(data ?? EMPTY), loading, error, reload };
 }

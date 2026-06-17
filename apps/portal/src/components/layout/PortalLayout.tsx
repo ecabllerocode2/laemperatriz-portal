@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import CartActivationModal from "@/components/cart/CartActivationModal";
 import ReceiptUploadModal from "@/components/cart/ReceiptUploadModal";
@@ -33,9 +33,18 @@ export default function PortalLayout() {
 
   const depositStatus = profile?.depositStatus ?? "none";
   const displayName = profile?.name || user?.name || "Clienta";
-  const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle(
-    depositStatus === "approved",
-  );
+  const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle({
+    enabled: depositStatus === "approved",
+    pollWhileActive: !isLivePage,
+  });
+  const wasLivePageRef = useRef(isLivePage);
+
+  useEffect(() => {
+    if (wasLivePageRef.current && !isLivePage) {
+      void reloadCycle();
+    }
+    wasLivePageRef.current = isLivePage;
+  }, [isLivePage, reloadCycle]);
   const [showPwaInstall, setShowPwaInstall] = useState(false);
   const { shouldOfferInstall, isIos, isAndroid, canNativeInstall, install, dismiss } =
     usePwaInstall();

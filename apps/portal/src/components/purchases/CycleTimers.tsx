@@ -1,4 +1,5 @@
 import type { PortalCycle } from "@emperatriz/types";
+import { useDeadlineCountdown } from "@/hooks/useDeadlineCountdown";
 import { formatCountdown } from "@/lib/format";
 
 interface CycleTimersProps {
@@ -6,8 +7,12 @@ interface CycleTimersProps {
 }
 
 export default function CycleTimers({ cycle }: CycleTimersProps) {
-  const purchaseMs = cycle.purchaseWindowRemainingMs ?? 0;
   const awaitingFirstLive = cycle.status === "deposit_confirmed";
+  const purchaseMs = useDeadlineCountdown(
+    cycle.purchaseWindowEndsAt,
+    cycle.status === "active" || (cycle.purchaseWindowRemainingMs ?? 0) > 0,
+    cycle.purchaseWindowRemainingMs ?? 0,
+  );
   const isActive = cycle.status === "active" || purchaseMs > 0;
 
   if (!awaitingFirstLive && !(isActive && purchaseMs > 0)) {

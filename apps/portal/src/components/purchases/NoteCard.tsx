@@ -1,5 +1,6 @@
 import { ChevronRight, Clock } from "lucide-react";
 import type { PortalSaleNote } from "@emperatriz/types";
+import { useDeadlineCountdown } from "@/hooks/useDeadlineCountdown";
 import { formatCountdown, formatCurrency } from "@/lib/format";
 
 interface NoteCardProps {
@@ -25,6 +26,11 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
   const pending = note.status === "pending_payment";
   const balance = Math.max(0, note.total - note.paidAmount);
   const showEarlyPayBreakdown = pending && note.earlyPayActive && note.discount > 0;
+  const earlyPayRemainingMs = useDeadlineCountdown(
+    note.earlyPayDeadline,
+    Boolean(note.earlyPayActive && pending),
+    note.earlyPayRemainingMs ?? 0,
+  );
 
   return (
     <article className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -67,7 +73,7 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
       {note.earlyPayActive && pending ? (
         <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-800">
           <Clock className="h-3.5 w-3.5" />
-          Pronto pago: {formatCountdown(note.earlyPayRemainingMs ?? 0)}
+          Pronto pago: {formatCountdown(earlyPayRemainingMs)}
         </div>
       ) : null}
 
