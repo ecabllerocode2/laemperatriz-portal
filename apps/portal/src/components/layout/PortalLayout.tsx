@@ -10,9 +10,19 @@ import Toast from "@/components/ui/Toast";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { waitForInstallPrompt } from "@/lib/pwa-install-prompt";
 import { usePortalCycle } from "@/hooks/usePortalCycle";
+import { usePortalPrivateState } from "@/hooks/usePortalPrivateState";
 import { usePortalProfile } from "@/hooks/usePortalProfile";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
+import type { PortalPrivateSnapshot } from "@emperatriz/types";
+import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+
+export interface PortalOutletContext {
+  profile: PortalProfileDoc | null;
+  depositStatus: DepositStatus;
+  canPurchase: boolean;
+  privateSnapshot: PortalPrivateSnapshot | null;
+}
 
 function firstNameFrom(fullName: string): string {
   return fullName.trim().split(/\s+/)[0] ?? fullName;
@@ -22,6 +32,12 @@ export default function PortalLayout() {
   const { user } = useAuthStore();
   const { profile, isLoading } = usePortalProfile(user?.uid);
   const {
+    snapshot: privateSnapshot,
+    canPurchase: rtdbCanPurchase,
+    connected: privateStateConnected,
+    cartOpeningRequired,
+  } = usePortalPrivateState(user?.uid);
+  const {
     openCartModal,
     showCartModal,
     showReceiptModal,
@@ -29,18 +45,25 @@ export default function PortalLayout() {
     depositReceiptSubmitted,
     clearDepositReceiptSubmitted,
     closeShippingAddressModal,
+    setToast,
+    bumpProfileReload,
   } = useUiStore();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isLivePage = pathname === "/live";
 
-  const depositStatus = profile?.depositStatus ?? "none";
+  const depositStatus =
+    (privateSnapshot?.depositStatus as DepositStatus | undefined) ??
+    profile?.depositStatus ??
+    "none";
+  const canPurchase = privateStateConnected ? rtdbCanPurchase : depositStatus === "approved";
   const displayName = profile?.name || user?.name || "Clienta";
   const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle({
-    enabled: depositStatus === "approved",
+    enabled: canPurchase,
     pollWhileActive: !isLivePage,
   });
   const wasLivePageRef = useRef(isLivePage);
+  const handledToastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (wasLivePageRef.current && !isLivePage) {
@@ -69,10 +92,48 @@ export default function PortalLayout() {
   }, [depositStatus, clearDepositReceiptSubmitted]);
 
   useEffect(() => {
-    if (!profile || depositStatus !== "none") return;
+    if (!profile) return;
+    const needsCart =
+      cartOpeningRequired ||
+      (privateStateConnected ? !rtdbCanPurchase && depositStatus === "none" : depositStatus === "none");
+    if (!needsCart) return;
     if (depositReceiptSubmitted || showReceiptModal) return;
     if (!showCartModal) openCartModal();
-  }, [profile, depositStatus, depositReceiptSubmitted, showReceiptModal, showCartModal, openCartModal]);
+  }, [
+    profile,
+    depositStatus,
+    depositReceiptSubmitted,
+    showReceiptModal,
+    showCartModal,
+    openCartModal,
+    cartOpeningRequired,
+    privateStateConnected,
+    rtdbCanPurchase,
+  ]);
+
+  useEffect(() => {
+    const toast = privateSnapshot?.toast;
+    if (!toast || toast.id === handledToastIdRef.current) return;
+
+    handledToastIdRef.current = toast.id;
+
+    if (toast.type === "cart_approved" || toast.type === "can_purchase") {
+      bumpProfileReload();
+      setToast(toast.message);
+    } else if (toast.type === "cycle_completed") {
+      bumpProfileReload();
+      if (!showReceiptModal) openCartModal();
+    } else if (toast.type === "payment_rejected") {
+      bumpProfileReload();
+      setToast(toast.message);
+    }
+  }, [
+    privateSnapshot?.toast,
+    bumpProfileReload,
+    setToast,
+    openCartModal,
+    showReceiptModal,
+  ]);
 
   useEffect(() => {
     if (!profile || !shouldOfferInstall) return;
@@ -125,7 +186,14 @@ export default function PortalLayout() {
             : "portal-shell space-y-4 py-4 sm:space-y-5 sm:py-5"
         }
       >
-        <Outlet context={{ profile, depositStatus }} />
+        <Outlet
+          context={{
+            profile,
+            depositStatus,
+            canPurchase,
+            privateSnapshot,
+          } satisfies PortalOutletContext}
+        />
       </main>
       <div className={isLivePage ? "max-lg:hidden" : undefined}>
         <BottomNav />

@@ -9,18 +9,16 @@ import LiveChatInput from "@/components/live/LiveChatInput";
 import LiveChatPanel from "@/components/live/LiveChatPanel";
 import LiveProductPanel from "@/components/live/LiveProductPanel";
 import LiveProductStack from "@/components/live/LiveProductStack";
+import LivePurchaseGate from "@/components/live/LivePurchaseGate";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { usePortalLive } from "@/hooks/usePortalLive";
 import { createPortalLiveOrder } from "@/lib/portal-live";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
-import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
 
-interface PortalContext {
-  profile: PortalProfileDoc | null;
-  depositStatus: DepositStatus;
-}
+interface PortalContext extends PortalOutletContext {}
 
 function mergeShownProducts(
   featured: PortalFeaturedProduct | null,
@@ -44,9 +42,16 @@ function mergeShownProducts(
 }
 
 export default function LivePage() {
-  const { profile, depositStatus } = useOutletContext<PortalContext>();
-  const { openCartModal, setToast, bumpProfileReload } = useUiStore();
-  const cartActive = depositStatus === "approved";
+  const { profile, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
+  const { openCartModal, openReceiptModal, setToast, bumpProfileReload } = useUiStore();
+  const cartActive = canPurchase;
+  const [dismissedToastId, setDismissedToastId] = useState<string | null>(null);
+
+  const handlePayThreshold = () => {
+    const due = privateSnapshot?.thresholdBlock?.depositDue ?? 0;
+    if (due <= 0) return;
+    openReceiptModal({ purpose: "notes", amount: due });
+  };
   const { session, featuredProduct, featuredHistory, loading, refreshing, error, reload } =
     usePortalLive(true);
   const authorName = profile?.name ?? "Clienta";
@@ -165,19 +170,21 @@ export default function LivePage() {
           </button>
         </div>
 
-        {!cartActive ? (
-          <div className="absolute inset-x-3 top-[calc(4.25rem+env(safe-area-inset-top))] z-30 rounded-xl border border-amber-300/40 bg-amber-500/20 px-3 py-2 text-center text-xs text-amber-50 backdrop-blur-sm">
-            Para apartar piezas,{" "}
-            <button
-              type="button"
-              onClick={openCartModal}
-              className="font-semibold underline underline-offset-2"
-            >
-              activa tu carrito
-            </button>
-            .
-          </div>
-        ) : null}
+        <LivePurchaseGate
+          canPurchase={cartActive}
+          blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
+          thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
+          toast={privateSnapshot?.toast ?? null}
+          dismissedToastId={dismissedToastId}
+          onDismissToast={() => {
+            if (privateSnapshot?.toast) {
+              setDismissedToastId(privateSnapshot.toast.id);
+            }
+          }}
+          onActivateCart={openCartModal}
+          onPayThreshold={handlePayThreshold}
+          variant="overlay"
+        />
 
         <div className="relative z-0 min-h-0 flex-1">
           <div className="absolute inset-0 z-0">{videoBlock}</div>
@@ -260,19 +267,21 @@ export default function LivePage() {
           </button>
         </section>
 
-        {!cartActive ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Puedes ver el live sin carrito. Para apartar piezas,{" "}
-            <button
-              type="button"
-              onClick={openCartModal}
-              className="font-semibold underline underline-offset-2"
-            >
-              activa tu carrito
-            </button>
-            .
-          </div>
-        ) : null}
+        <LivePurchaseGate
+          canPurchase={cartActive}
+          blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
+          thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
+          toast={privateSnapshot?.toast ?? null}
+          dismissedToastId={dismissedToastId}
+          onDismissToast={() => {
+            if (privateSnapshot?.toast) {
+              setDismissedToastId(privateSnapshot.toast.id);
+            }
+          }}
+          onActivateCart={openCartModal}
+          onPayThreshold={handlePayThreshold}
+          variant="inline"
+        />
 
         {error ? (
           <section className="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">

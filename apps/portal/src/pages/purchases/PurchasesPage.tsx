@@ -10,22 +10,19 @@ import NoteItemsModal from "@/components/purchases/NoteItemsModal";
 import PenaltyDecisionModal from "@/components/purchases/PenaltyDecisionModal";
 import { usePortalCycle } from "@/hooks/usePortalCycle";
 import { formatCurrency } from "@/lib/format";
-import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
 
-interface PortalContext {
-  profile: PortalProfileDoc | null;
-  depositStatus: DepositStatus;
-}
+interface PortalContext extends PortalOutletContext {}
 
 export default function PurchasesPage() {
-  const { depositStatus } = useOutletContext<PortalContext>();
-  const { cycle, loading, error, reload } = usePortalCycle(depositStatus === "approved");
+  const { depositStatus, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
+  const { cycle, loading, error, reload } = usePortalCycle(canPurchase);
   const { openReceiptModal } = useUiStore();
   const [selectedNote, setSelectedNote] = useState<PortalSaleNote | null>(null);
   const [penaltyDismissed, setPenaltyDismissed] = useState(false);
 
-  const cartActive = depositStatus === "approved";
+  const cartActive = canPurchase;
   const pendingPenalty =
     cycle?.penalty?.decision === "pending" && cycle.status === "penalty_freq";
   const notes = cycle?.notes ?? [];
@@ -38,9 +35,33 @@ export default function PurchasesPage() {
     openReceiptModal({ purpose: "notes", amount: balance, noteId: note.id });
   };
 
+  const handlePayThreshold = () => {
+    const due = privateSnapshot?.thresholdBlock?.depositDue ?? 0;
+    if (due <= 0) return;
+    openReceiptModal({ purpose: "notes", amount: due });
+  };
+
   return (
     <>
       {depositStatus === "pending" ? <ValidationBanner /> : null}
+
+      {privateSnapshot?.thresholdBlock?.active ? (
+        <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+          <p>
+            Has pedido{" "}
+            {formatCurrency(privateSnapshot.thresholdBlock.orderedTotal)}. Para seguir apartando en
+            el live, liquida{" "}
+            {formatCurrency(privateSnapshot.thresholdBlock.depositDue)}.
+          </p>
+          <button
+            type="button"
+            onClick={handlePayThreshold}
+            className="mt-3 rounded-xl bg-brand-night px-4 py-2.5 text-sm font-semibold text-white"
+          >
+            Subir comprobante
+          </button>
+        </section>
+      ) : null}
 
       <LiveBanner cartActive={cartActive} />
 

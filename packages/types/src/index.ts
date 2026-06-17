@@ -622,3 +622,62 @@ export interface PortalLiveOrderResult {
   variantColor?: string;
   variantSize?: string;
 }
+
+/** Razón por la que la clienta no puede apartar en el live. */
+export type PortalBlockReason =
+  | "cart_opening_required"
+  | "cart_pending_review"
+  | "cycle_completed"
+  | "cycle_closed"
+  | "threshold_block"
+  | null;
+
+export interface PortalThresholdBlock {
+  active: boolean;
+  orderedTotal: number;
+  paidTotal: number;
+  requiredPaid: number;
+  depositDue: number;
+}
+
+export type PortalPrivateToastType =
+  | "cart_approved"
+  | "payment_rejected"
+  | "cycle_completed"
+  | "can_purchase";
+
+/** Aviso efímero en RTDB (Firestore sigue siendo fuente de verdad). */
+export interface PortalPrivateToast {
+  id: string;
+  type: PortalPrivateToastType;
+  message: string;
+  dismissible: boolean;
+}
+
+/** Snapshot en RTDB (`portalPrivate/{uid}`) — espejo en tiempo real del estado en Firestore. */
+export interface PortalPrivateSnapshot {
+  depositStatus: "none" | "pending" | "approved";
+  cycleId: string | null;
+  cycleStatus: string | null;
+  canPurchase: boolean;
+  blockReason: PortalBlockReason;
+  cartOpeningRequired: boolean;
+  pendingPayment: {
+    concept: PaymentConcept;
+    amount: number;
+    status: "pending" | "approved" | "rejected";
+  } | null;
+  thresholdBlock: PortalThresholdBlock;
+  toast: PortalPrivateToast | null;
+  version: number;
+  updatedAt: number;
+}
+
+/** Resumen de pagos pendientes para staff (RTDB `staffPayments/summary`). */
+export interface StaffPaymentsSummary {
+  pendingCount: number;
+  version: number;
+  updatedAt: number;
+}
+
+export type PaymentConcept = "cart_opening" | "note_payment" | "shipping_payment";

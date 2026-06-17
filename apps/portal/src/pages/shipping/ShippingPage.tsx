@@ -8,17 +8,14 @@ import ShipmentCard from "@/components/shipping/ShipmentCard";
 import ShipmentDetailModal from "@/components/shipping/ShipmentDetailModal";
 import { usePortalShipments } from "@/hooks/usePortalShipments";
 import { confirmFreeSettlement } from "@/lib/portal-cycle";
-import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
 
-interface PortalContext {
-  profile: PortalProfileDoc | null;
-  depositStatus: DepositStatus;
-}
+interface PortalContext extends PortalOutletContext {}
 
 export default function ShippingPage() {
-  const { depositStatus } = useOutletContext<PortalContext>();
-  const cartActive = depositStatus === "approved";
+  const { canPurchase } = useOutletContext<PortalContext>();
+  const cartActive = canPurchase;
   const {
     active,
     history,
