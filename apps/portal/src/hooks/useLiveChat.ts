@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { limitToLast, onValue, orderByChild, push, query, ref } from "firebase/database";
 import type { LiveChatComment } from "@emperatriz/types";
-import { rtdb } from "@/lib/firebase";
+import { auth, rtdb } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/auth.store";
 
 const MAX_VISIBLE = 30;
@@ -44,36 +45,53 @@ export function useLiveChat(sessionId: string | null | undefined, authorName: st
       return;
     }
 
-    const metaRef = ref(rtdb, `liveChats/${sessionId}/meta`);
-    const commentsRef = query(
-      ref(rtdb, `liveChats/${sessionId}/comments`),
-      orderByChild("createdAt"),
-      limitToLast(MAX_VISIBLE),
-    );
+    let unsubMeta: (() => void) | undefined;
+    let unsubComments: (() => void) | undefined;
 
-    const unsubMeta = onValue(
-      metaRef,
-      (snap) => {
-        setChatActive(Boolean(snap.val()?.active));
-      },
-      () => setChatActive(false),
-    );
+    const authUnsub = onAuthStateChanged(auth, (user) => {
+      unsubMeta?.();
+      unsubComments?.();
+      unsubMeta = undefined;
+      unsubComments = undefined;
 
-    const unsubComments = onValue(
-      commentsRef,
-      (snap) => {
-        setComments(mapComments(snap.val() as Record<string, unknown> | null));
-        setError(null);
-      },
-      () => {
+      if (!user) {
         setComments([]);
-        setError("No se pudo cargar el chat.");
-      },
-    );
+        setChatActive(false);
+        return;
+      }
+
+      const metaRef = ref(rtdb, `liveChats/${sessionId}/meta`);
+      const commentsRef = query(
+        ref(rtdb, `liveChats/${sessionId}/comments`),
+        orderByChild("createdAt"),
+        limitToLast(MAX_VISIBLE),
+      );
+
+      unsubMeta = onValue(
+        metaRef,
+        (snap) => {
+          setChatActive(Boolean(snap.val()?.active));
+        },
+        () => setChatActive(false),
+      );
+
+      unsubComments = onValue(
+        commentsRef,
+        (snap) => {
+          setComments(mapComments(snap.val() as Record<string, unknown> | null));
+          setError(null);
+        },
+        () => {
+          setComments([]);
+          setError("No se pudo cargar el chat.");
+        },
+      );
+    });
 
     return () => {
-      unsubMeta();
-      unsubComments();
+      authUnsub();
+      unsubMeta?.();
+      unsubComments?.();
     };
   }, [sessionId]);
 

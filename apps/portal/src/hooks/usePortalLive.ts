@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { get, onValue, ref } from "firebase/database";
 import type { PortalFeaturedProduct, PortalLiveSession } from "@emperatriz/types";
 import { fetchPortalLive } from "@/lib/portal-live";
-import { rtdb } from "@/lib/firebase";
+import { auth, rtdb } from "@/lib/firebase";
 import {
   LIVE_PUBLIC_RTD_PATH,
   livePublicSnapshotToPortalSession,
   parseLivePublicSnapshot,
 } from "@/lib/live-public-snapshot";
+
+function isPermissionDenied(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = (err as { code?: string }).code;
+  return code === "PERMISSION_DENIED" || code === "permission_denied";
+}
 
 /** Estado del live vía RTDB push — sin polling Firestore. */
 export function usePortalLive(enabled = true) {
@@ -36,6 +43,24 @@ export function usePortalLive(enabled = true) {
     setVersion(parsed.version);
   }, []);
 
+  const loadFromApi = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await fetchPortalLive();
+      if (result.session) {
+        setSession(result.session);
+        setFeaturedProduct(result.session.featuredProduct);
+        setFeaturedHistory(result.session.featuredHistory);
+        setError(null);
+        return true;
+      }
+      applySnapshot(null);
+      return true;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al actualizar el live");
+      return false;
+    }
+  }, [applySnapshot]);
+
   useEffect(() => {
     if (!enabled) {
       setSession(null);
@@ -48,23 +73,50 @@ export function usePortalLive(enabled = true) {
     setLoading(true);
     setError(null);
 
-    const nodeRef = ref(rtdb, LIVE_PUBLIC_RTD_PATH);
-    const unsub = onValue(
-      nodeRef,
-      (snap) => {
-        applySnapshot(snap.val());
-        setLoading(false);
-        setError(null);
-      },
-      (err) => {
-        console.error("[usePortalLive]", err);
-        setError("No se pudo conectar al live en tiempo real.");
-        setLoading(false);
-      },
-    );
+    let rtdbUnsub: (() => void) | undefined;
+    let cancelled = false;
 
-    return () => unsub();
-  }, [applySnapshot, enabled]);
+    const authUnsub = onAuthStateChanged(auth, (user) => {
+      rtdbUnsub?.();
+      rtdbUnsub = undefined;
+
+      if (cancelled) return;
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const nodeRef = ref(rtdb, LIVE_PUBLIC_RTD_PATH);
+      rtdbUnsub = onValue(
+        nodeRef,
+        (snap) => {
+          if (cancelled) return;
+          applySnapshot(snap.val());
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          if (cancelled) return;
+          console.error("[usePortalLive]", err);
+          void loadFromApi().finally(() => {
+            if (!cancelled) setLoading(false);
+          });
+          if (isPermissionDenied(err)) {
+            setError(null);
+          } else {
+            setError("No se pudo conectar al live en tiempo real.");
+          }
+        },
+      );
+    });
+
+    return () => {
+      cancelled = true;
+      authUnsub();
+      rtdbUnsub?.();
+    };
+  }, [applySnapshot, enabled, loadFromApi]);
 
   /** Actualización manual: relee RTDB y, si hace falta, re-sincroniza vía API. */
   const reload = useCallback(async () => {
@@ -72,27 +124,26 @@ export function usePortalLive(enabled = true) {
     setRefreshing(true);
     setError(null);
     try {
-      const snap = await get(ref(rtdb, LIVE_PUBLIC_RTD_PATH));
-      if (snap.exists()) {
-        applySnapshot(snap.val());
-        return;
+      if (auth.currentUser) {
+        const snap = await get(ref(rtdb, LIVE_PUBLIC_RTD_PATH));
+        if (snap.exists()) {
+          applySnapshot(snap.val());
+          return;
+        }
       }
 
-      const result = await fetchPortalLive();
-      if (result.session) {
-        setSession(result.session);
-        setFeaturedProduct(result.session.featuredProduct);
-        setFeaturedHistory(result.session.featuredHistory);
-      } else {
-        applySnapshot(null);
-      }
+      await loadFromApi();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al actualizar el live");
+      if (isPermissionDenied(err)) {
+        await loadFromApi();
+      } else {
+        setError(err instanceof Error ? err.message : "Error al actualizar el live");
+      }
     } finally {
       setRefreshing(false);
       setLoading(false);
     }
-  }, [applySnapshot, enabled]);
+  }, [applySnapshot, enabled, loadFromApi]);
 
   const liveVersion = useMemo(() => version, [version]);
 
