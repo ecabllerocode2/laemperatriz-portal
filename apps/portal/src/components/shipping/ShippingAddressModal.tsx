@@ -8,6 +8,7 @@ import {
 } from "@/data/mx-locations";
 import type { ShippingAddressDetail } from "@/lib/portal-cycle";
 import { saveShippingAddress } from "@/lib/portal-cycle";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useUiStore } from "@/stores/ui.store";
 
 interface ShippingAddressModalProps {
@@ -39,6 +40,8 @@ export default function ShippingAddressModal({
   const [error, setError] = useState<string | null>(null);
 
   const municipalities = useMemo(() => municipalitiesForState(state), [state]);
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

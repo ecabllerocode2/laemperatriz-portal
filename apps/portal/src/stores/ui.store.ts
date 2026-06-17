@@ -11,6 +11,8 @@ interface UiState {
   showShippingAddressModal: boolean;
   receiptModalOptions: ReceiptModalOptions;
   dismissValidationBanner: boolean;
+  /** Evita reabrir el modal de carrito tras enviar comprobante (mientras el perfil sigue en "none"). */
+  depositReceiptSubmitted: boolean;
   profileReloadTick: number;
   setToast: (message: string | null) => void;
   bumpProfileReload: () => void;
@@ -21,6 +23,8 @@ interface UiState {
   backFromReceiptModal: () => void;
   openShippingAddressModal: () => void;
   closeShippingAddressModal: () => void;
+  markDepositReceiptSubmitted: () => void;
+  clearDepositReceiptSubmitted: () => void;
   dismissValidation: () => void;
   resetValidationDismiss: () => void;
 }
@@ -32,6 +36,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   showShippingAddressModal: false,
   receiptModalOptions: DEFAULT_RECEIPT_MODAL_OPTIONS,
   dismissValidationBanner: false,
+  depositReceiptSubmitted: false,
 
   profileReloadTick: 0,
 
@@ -52,6 +57,8 @@ export const useUiStore = create<UiState>((set, get) => ({
   closeReceiptModal: () => set({ showReceiptModal: false }),
   openShippingAddressModal: () => set({ showShippingAddressModal: true }),
   closeShippingAddressModal: () => set({ showShippingAddressModal: false }),
+  markDepositReceiptSubmitted: () => set({ depositReceiptSubmitted: true, showCartModal: false }),
+  clearDepositReceiptSubmitted: () => set({ depositReceiptSubmitted: false }),
   backFromReceiptModal: () => {
     const purpose = get().receiptModalOptions.purpose;
     if (purpose === "cart") {

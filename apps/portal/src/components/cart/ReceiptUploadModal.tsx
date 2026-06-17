@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Camera, ImageIcon, Loader2, X } from "lucide-react";
 import { getReceiptModalCopy } from "@/components/cart/receipt-modal-config";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { uploadPaymentReceipt } from "@/lib/portal-profile";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
@@ -32,6 +33,7 @@ export default function ReceiptUploadModal() {
   const {
     showReceiptModal,
     receiptModalOptions,
+    markDepositReceiptSubmitted,
     closeReceiptModal,
     backFromReceiptModal,
     setToast,
@@ -45,6 +47,8 @@ export default function ReceiptUploadModal() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useBodyScrollLock(showReceiptModal);
 
   if (!showReceiptModal) return null;
 
@@ -74,6 +78,7 @@ export default function ReceiptUploadModal() {
     try {
       const normalized = new File([file], file.name, { type: normalizeContentType(file) });
       await uploadPaymentReceipt(normalized, receiptModalOptions);
+      markDepositReceiptSubmitted();
       bumpProfileReload();
       closeReceiptModal();
       resetValidationDismiss();

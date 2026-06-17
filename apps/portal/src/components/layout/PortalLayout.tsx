@@ -24,7 +24,10 @@ export default function PortalLayout() {
   const {
     openCartModal,
     showCartModal,
+    showReceiptModal,
     showShippingAddressModal,
+    depositReceiptSubmitted,
+    clearDepositReceiptSubmitted,
     closeShippingAddressModal,
   } = useUiStore();
   const navigate = useNavigate();
@@ -60,9 +63,16 @@ export default function PortalLayout() {
   }, [isLoading, user, profile, navigate]);
 
   useEffect(() => {
+    if (depositStatus === "pending" || depositStatus === "approved") {
+      clearDepositReceiptSubmitted();
+    }
+  }, [depositStatus, clearDepositReceiptSubmitted]);
+
+  useEffect(() => {
     if (!profile || depositStatus !== "none") return;
+    if (depositReceiptSubmitted || showReceiptModal) return;
     if (!showCartModal) openCartModal();
-  }, [profile, depositStatus, showCartModal, openCartModal]);
+  }, [profile, depositStatus, depositReceiptSubmitted, showReceiptModal, showCartModal, openCartModal]);
 
   useEffect(() => {
     if (!profile || !shouldOfferInstall) return;

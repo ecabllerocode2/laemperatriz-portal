@@ -4,6 +4,7 @@ import type { PortalFeaturedProduct } from "@emperatriz/types";
 import LiveProductImageLightbox from "@/components/live/LiveProductImageLightbox";
 import VariantPicker from "@/components/live/VariantPicker";
 import { formatCurrency } from "@/lib/format";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   normalizeProductVariants,
   resolveAutoVariantId,
@@ -48,6 +49,8 @@ export default function LiveAddToCartModal({
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? null;
   const availableStock = selectedVariant?.stock ?? product?.stock ?? 0;
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (open) {
       setQuantity(1);
@@ -65,18 +68,12 @@ export default function LiveAddToCartModal({
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !galleryOpen) onClose();
     };
     window.addEventListener("keydown", onKeyDown);
 
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose, galleryOpen]);
 
   const pricing = useMemo(() => {

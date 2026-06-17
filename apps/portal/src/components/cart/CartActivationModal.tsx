@@ -1,9 +1,12 @@
 import { X } from "lucide-react";
 import { DEPOSIT_AMOUNT } from "@/lib/portal-profile";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useUiStore } from "@/stores/ui.store";
 
 export default function CartActivationModal() {
   const { showCartModal, closeCartModal, openReceiptModal } = useUiStore();
+
+  useBodyScrollLock(showCartModal);
 
   if (!showCartModal) return null;
 
