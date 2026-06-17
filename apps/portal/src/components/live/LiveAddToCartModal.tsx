@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   normalizeProductVariants,
-  resolveAutoVariantId,
+  resolveConfirmVariantId,
   variantsNeedSelection,
 } from "@/lib/product-variants";
 import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
@@ -18,7 +18,7 @@ interface LiveAddToCartModalProps {
   cartActive: boolean;
   submitting?: boolean;
   onClose: () => void;
-  onConfirm: (quantity: number, variantId?: string) => void;
+  onConfirm: (quantity: number, variantId: string) => void;
   onActivateCart: () => void;
 }
 
@@ -40,6 +40,7 @@ export default function LiveAddToCartModal({
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [variantError, setVariantError] = useState(false);
 
   const variants = useMemo(
     () => (product ? normalizeProductVariants(product) : []),
@@ -54,10 +55,11 @@ export default function LiveAddToCartModal({
   useEffect(() => {
     if (open) {
       setQuantity(1);
-      setSelectedVariantId(resolveAutoVariantId(variants));
+      setSelectedVariantId(null);
       setGalleryOpen(false);
+      setVariantError(false);
     }
-  }, [open, product?.productId, variants]);
+  }, [open, product?.productId]);
 
   useEffect(() => {
     if (selectedVariant && quantity > selectedVariant.stock) {
@@ -88,10 +90,6 @@ export default function LiveAddToCartModal({
   const channel = saleChannelOption(product.saleChannel);
   const hasEarlyPay = product.earlyPayDiscountPercent > 0;
   const images = productImages(product);
-  const canConfirm =
-    cartActive &&
-    availableStock >= 1 &&
-    (!needsVariant || selectedVariantId !== null);
 
   return (
     <>
@@ -190,9 +188,17 @@ export default function LiveAddToCartModal({
                 <VariantPicker
                   variants={variants}
                   selectedVariantId={selectedVariantId}
-                  onSelect={setSelectedVariantId}
+                  onSelect={(id) => {
+                    setSelectedVariantId(id);
+                    setVariantError(false);
+                  }}
                   disabled={submitting}
                 />
+                {variantError && needsVariant ? (
+                  <p className="mt-2 text-xs font-medium text-brand-red">
+                    Elige color o talla para continuar.
+                  </p>
+                ) : null}
               </div>
 
               <div className="mt-5">
@@ -235,13 +241,18 @@ export default function LiveAddToCartModal({
 
           <button
             type="button"
-            disabled={submitting || (cartActive && !canConfirm)}
+            disabled={submitting || (cartActive && availableStock < 1)}
             onClick={() => {
               if (!cartActive) {
                 onActivateCart();
                 return;
               }
-              onConfirm(safeQty, selectedVariantId ?? undefined);
+              const variantId = resolveConfirmVariantId(variants, selectedVariantId);
+              if (!variantId) {
+                setVariantError(true);
+                return;
+              }
+              onConfirm(safeQty, variantId);
             }}
             className="mt-5 w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
           >

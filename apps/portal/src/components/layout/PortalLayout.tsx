@@ -35,15 +35,14 @@ export default function PortalLayout() {
     snapshot: privateSnapshot,
     canPurchase: rtdbCanPurchase,
     connected: privateStateConnected,
-    cartOpeningRequired,
   } = usePortalPrivateState(user?.uid);
   const {
-    openCartModal,
     showCartModal,
     showReceiptModal,
     showShippingAddressModal,
     depositReceiptSubmitted,
     clearDepositReceiptSubmitted,
+    resetCartActivationDismissed,
     closeShippingAddressModal,
     setToast,
     bumpProfileReload,
@@ -89,27 +88,10 @@ export default function PortalLayout() {
     if (depositStatus === "pending" || depositStatus === "approved") {
       clearDepositReceiptSubmitted();
     }
-  }, [depositStatus, clearDepositReceiptSubmitted]);
-
-  useEffect(() => {
-    if (!profile) return;
-    const needsCart =
-      cartOpeningRequired ||
-      (privateStateConnected ? !rtdbCanPurchase && depositStatus === "none" : depositStatus === "none");
-    if (!needsCart) return;
-    if (depositReceiptSubmitted || showReceiptModal) return;
-    if (!showCartModal) openCartModal();
-  }, [
-    profile,
-    depositStatus,
-    depositReceiptSubmitted,
-    showReceiptModal,
-    showCartModal,
-    openCartModal,
-    cartOpeningRequired,
-    privateStateConnected,
-    rtdbCanPurchase,
-  ]);
+    if (depositStatus === "approved") {
+      resetCartActivationDismissed();
+    }
+  }, [depositStatus, clearDepositReceiptSubmitted, resetCartActivationDismissed]);
 
   useEffect(() => {
     const toast = privateSnapshot?.toast;
@@ -122,7 +104,6 @@ export default function PortalLayout() {
       setToast(toast.message);
     } else if (toast.type === "cycle_completed") {
       bumpProfileReload();
-      if (!showReceiptModal) openCartModal();
     } else if (toast.type === "payment_rejected") {
       bumpProfileReload();
       setToast(toast.message);
@@ -131,8 +112,6 @@ export default function PortalLayout() {
     privateSnapshot?.toast,
     bumpProfileReload,
     setToast,
-    openCartModal,
-    showReceiptModal,
   ]);
 
   useEffect(() => {

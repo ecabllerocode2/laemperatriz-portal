@@ -38,3 +38,15 @@ export function resolveAutoVariantId(variants: ProductVariant[]): string | null 
   if (available.length !== 1) return null;
   return available[0]!.id;
 }
+
+/** Variante a enviar al confirmar: selección manual o auto si solo hay una. */
+export function resolveConfirmVariantId(
+  variants: ProductVariant[],
+  selectedVariantId: string | null,
+): string | null {
+  const available = variantsAvailableForSale(variants);
+  if (selectedVariantId && available.some((variant) => variant.id === selectedVariantId)) {
+    return selectedVariantId;
+  }
+  return resolveAutoVariantId(variants);
+}

@@ -13,6 +13,7 @@ import LivePurchaseGate from "@/components/live/LivePurchaseGate";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { usePortalLive } from "@/hooks/usePortalLive";
 import { createPortalLiveOrder } from "@/lib/portal-live";
+import { normalizeProductVariants, resolveConfirmVariantId } from "@/lib/product-variants";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
@@ -82,15 +83,22 @@ export default function LivePage() {
     setModalOpen(true);
   };
 
-  const handleConfirmOrder = async (quantity: number, variantId?: string) => {
+  const handleConfirmOrder = async (quantity: number, variantId: string) => {
     if (!selectedProduct || !cartActive) return;
 
     setSubmitting(true);
     try {
+      const variants = normalizeProductVariants(selectedProduct);
+      const resolvedVariantId = resolveConfirmVariantId(variants, variantId);
+      if (!resolvedVariantId) {
+        setToast("Elige color o talla para continuar.");
+        return;
+      }
+
       const result = await createPortalLiveOrder({
         productId: selectedProduct.productId,
         quantity,
-        ...(variantId ? { variantId } : {}),
+        variantId: resolvedVariantId,
         ...(session?.id ? { liveSessionId: session.id } : {}),
       });
       setModalOpen(false);

@@ -4,7 +4,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useUiStore } from "@/stores/ui.store";
 
 export default function CartActivationModal() {
-  const { showCartModal, closeCartModal, openReceiptModal } = useUiStore();
+  const { showCartModal, dismissCartActivation, openReceiptModal } = useUiStore();
 
   useBodyScrollLock(showCartModal);
 
@@ -20,7 +20,7 @@ export default function CartActivationModal() {
       >
         <button
           type="button"
-          onClick={closeCartModal}
+          onClick={dismissCartActivation}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 sm:right-4 sm:top-4"
           aria-label="Cerrar"
         >
@@ -61,7 +61,7 @@ export default function CartActivationModal() {
           </button>
           <button
             type="button"
-            onClick={closeCartModal}
+            onClick={dismissCartActivation}
             className="w-full rounded-full border border-neutral-300 bg-white py-3.5 text-sm font-medium text-brand-night transition hover:bg-neutral-50"
           >
             Lo hago en un momento

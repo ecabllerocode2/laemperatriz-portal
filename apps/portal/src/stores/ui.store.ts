@@ -13,11 +13,15 @@ interface UiState {
   dismissValidationBanner: boolean;
   /** Evita reabrir el modal de carrito tras enviar comprobante (mientras el perfil sigue en "none"). */
   depositReceiptSubmitted: boolean;
+  /** Usuario cerró el modal de activación; no volver a abrirlo hasta que intente comprar. */
+  cartActivationDismissed: boolean;
   profileReloadTick: number;
   setToast: (message: string | null) => void;
   bumpProfileReload: () => void;
   openCartModal: () => void;
   closeCartModal: () => void;
+  dismissCartActivation: () => void;
+  resetCartActivationDismissed: () => void;
   openReceiptModal: (options?: Partial<ReceiptModalOptions>) => void;
   closeReceiptModal: () => void;
   backFromReceiptModal: () => void;
@@ -37,6 +41,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   receiptModalOptions: DEFAULT_RECEIPT_MODAL_OPTIONS,
   dismissValidationBanner: false,
   depositReceiptSubmitted: false,
+  cartActivationDismissed: false,
 
   profileReloadTick: 0,
 
@@ -45,6 +50,9 @@ export const useUiStore = create<UiState>((set, get) => ({
     set((state) => ({ profileReloadTick: state.profileReloadTick + 1 })),
   openCartModal: () => set({ showCartModal: true }),
   closeCartModal: () => set({ showCartModal: false }),
+  dismissCartActivation: () =>
+    set({ showCartModal: false, cartActivationDismissed: true }),
+  resetCartActivationDismissed: () => set({ cartActivationDismissed: false }),
   openReceiptModal: (options) =>
     set({
       showReceiptModal: true,
@@ -57,7 +65,8 @@ export const useUiStore = create<UiState>((set, get) => ({
   closeReceiptModal: () => set({ showReceiptModal: false }),
   openShippingAddressModal: () => set({ showShippingAddressModal: true }),
   closeShippingAddressModal: () => set({ showShippingAddressModal: false }),
-  markDepositReceiptSubmitted: () => set({ depositReceiptSubmitted: true, showCartModal: false }),
+  markDepositReceiptSubmitted: () =>
+    set({ depositReceiptSubmitted: true, showCartModal: false, cartActivationDismissed: true }),
   clearDepositReceiptSubmitted: () => set({ depositReceiptSubmitted: false }),
   backFromReceiptModal: () => {
     const purpose = get().receiptModalOptions.purpose;
