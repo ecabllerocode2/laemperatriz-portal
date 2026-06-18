@@ -101,7 +101,7 @@ export interface Product {
   stockAlertThreshold: number;
   /** Color de nota fijado al dar de alta el producto en inventario. */
   saleChannel: ProductSaleChannel;
-  /** Descuento de pronto pago (0–100, múltiplos de 5). Solo si saleChannel !== no_discount. */
+  /** Descuento del producto (0–100, múltiplos de 5). Independiente del color de nota. */
   earlyPayDiscountPercent?: number;
   createdBy: string;
   createdAt: Timestamp;
@@ -587,7 +587,7 @@ export interface PortalFeaturedProduct {
   imageUrls: string[];
   shownAt: string | null;
   saleChannel: ProductSaleChannel;
-  /** % de pronto pago si el producto es elegible (0 si naranja). */
+  /** % de descuento del producto (0 si sin descuento). */
   earlyPayDiscountPercent: number;
   /** Variantes disponibles al mostrar (stock por color/talla). */
   variants?: ProductVariant[];
