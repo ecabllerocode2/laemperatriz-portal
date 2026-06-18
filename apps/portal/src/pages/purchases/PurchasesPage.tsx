@@ -17,12 +17,13 @@ interface PortalContext extends PortalOutletContext {}
 
 export default function PurchasesPage() {
   const { depositStatus, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
-  const { cycle, loading, error, reload } = usePortalCycle(canPurchase);
+  const { cycle, loading, error, reload } = usePortalCycle(true);
   const { openReceiptModal } = useUiStore();
   const [selectedNote, setSelectedNote] = useState<PortalSaleNote | null>(null);
   const [penaltyDismissed, setPenaltyDismissed] = useState(false);
 
   const cartActive = canPurchase;
+  const hasApprovedDeposit = depositStatus === "approved";
   const pendingPenalty =
     cycle?.penalty?.decision === "pending" && cycle.status === "penalty_freq";
   const notes = cycle?.notes ?? [];
@@ -63,7 +64,7 @@ export default function PurchasesPage() {
         </section>
       ) : null}
 
-      <LiveBanner cartActive={cartActive} />
+      <LiveBanner cartActive={cartActive} depositStatus={depositStatus} />
 
       {cycle ? <CycleTimers cycle={cycle} /> : null}
 
@@ -123,9 +124,11 @@ export default function PurchasesPage() {
           <p className="mt-6 pb-2 text-center text-sm text-neutral-500">Cargando compras…</p>
         ) : notes.length === 0 ? (
           <p className="mt-6 pb-2 text-center text-sm text-neutral-500 sm:mt-8 sm:pb-4">
-            {cartActive
-              ? "Aún no hay notas en tu ciclo actual. Tus compras del live aparecerán aquí."
-              : "Activa tu carrito con el depósito para poder comprar en el live."}
+            {depositStatus === "pending"
+              ? "Tu depósito está en validación. Cuando se apruebe, tus compras aparecerán aquí."
+              : hasApprovedDeposit
+                ? "Aún no hay notas en tu ciclo actual. Tus compras del live y la tienda aparecerán aquí."
+                : "Activa tu carrito con el depósito para poder comprar en el live."}
           </p>
         ) : (
           <div className="mt-4 space-y-3">

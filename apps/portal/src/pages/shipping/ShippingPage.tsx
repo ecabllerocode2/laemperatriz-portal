@@ -14,8 +14,9 @@ import { useUiStore } from "@/stores/ui.store";
 interface PortalContext extends PortalOutletContext {}
 
 export default function ShippingPage() {
-  const { canPurchase } = useOutletContext<PortalContext>();
+  const { canPurchase, depositStatus } = useOutletContext<PortalContext>();
   const cartActive = canPurchase;
+  const hasApprovedDeposit = depositStatus === "approved";
   const {
     active,
     history,
@@ -24,7 +25,7 @@ export default function ShippingPage() {
     loading,
     error,
     reload,
-  } = usePortalShipments(cartActive);
+  } = usePortalShipments(true);
   const { openReceiptModal, bumpProfileReload, openShippingAddressModal } = useUiStore();
   const [detailCycle, setDetailCycle] = useState<PortalCycle | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -54,13 +55,13 @@ export default function ShippingPage() {
 
   return (
     <>
-      <LiveBanner cartActive={cartActive} />
+      <LiveBanner cartActive={cartActive} depositStatus={depositStatus} />
 
       {shipment?.liquidationAlerts?.length ? (
         <LiquidationAlertsBanner alerts={shipment.liquidationAlerts} />
       ) : null}
 
-      {cartActive && needsShippingAddress ? (
+      {hasApprovedDeposit && needsShippingAddress ? (
         <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 shadow-sm">
           <h3 className="text-sm font-bold text-amber-900">Falta tu dirección de envío</h3>
           <p className="mt-1 text-sm text-amber-900/90">
@@ -74,7 +75,7 @@ export default function ShippingPage() {
             Capturar dirección
           </button>
         </section>
-      ) : cartActive && shippingAddress ? (
+      ) : hasApprovedDeposit && shippingAddress ? (
         <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -124,9 +125,11 @@ export default function ShippingPage() {
           <p className="mt-6 text-center text-sm text-neutral-500">Cargando envíos…</p>
         ) : !active && history.length === 0 ? (
           <p className="mt-6 text-center text-sm text-neutral-500">
-            {cartActive
-              ? "Aún no tienes envíos. Aparecerá aquí al confirmar tu depósito."
-              : "Activa tu carrito con el depósito para ver tus envíos."}
+            {depositStatus === "pending"
+              ? "Tu depósito está en validación. Cuando se apruebe, podrás ver tus envíos aquí."
+              : hasApprovedDeposit
+                ? "Aún no tienes envíos. Aparecerá aquí al confirmar tu depósito."
+                : "Activa tu carrito con el depósito para ver tus envíos."}
           </p>
         ) : (
           <div className="mt-4 space-y-4">

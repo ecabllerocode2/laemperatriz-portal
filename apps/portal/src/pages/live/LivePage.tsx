@@ -18,6 +18,7 @@ import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import type { PortalFeaturedProduct } from "@emperatriz/types";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
+import { markPortalToastSeen } from "@/lib/portal-toast";
 
 interface PortalContext extends PortalOutletContext {}
 
@@ -43,7 +44,7 @@ function mergeShownProducts(
 }
 
 export default function LivePage() {
-  const { profile, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
+  const { profile, canPurchase, depositStatus, privateSnapshot } = useOutletContext<PortalContext>();
   const { openCartModal, openReceiptModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = canPurchase;
   const [dismissedToastId, setDismissedToastId] = useState<string | null>(null);
@@ -186,12 +187,14 @@ export default function LivePage() {
 
         <LivePurchaseGate
           canPurchase={cartActive}
+          depositStatus={depositStatus}
           blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
           thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
           toast={privateSnapshot?.toast ?? null}
           dismissedToastId={dismissedToastId}
           onDismissToast={() => {
             if (privateSnapshot?.toast) {
+              markPortalToastSeen(privateSnapshot.toast.id);
               setDismissedToastId(privateSnapshot.toast.id);
             }
           }}
@@ -283,12 +286,14 @@ export default function LivePage() {
 
         <LivePurchaseGate
           canPurchase={cartActive}
+          depositStatus={depositStatus}
           blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
           thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
           toast={privateSnapshot?.toast ?? null}
           dismissedToastId={dismissedToastId}
           onDismissToast={() => {
             if (privateSnapshot?.toast) {
+              markPortalToastSeen(privateSnapshot.toast.id);
               setDismissedToastId(privateSnapshot.toast.id);
             }
           }}

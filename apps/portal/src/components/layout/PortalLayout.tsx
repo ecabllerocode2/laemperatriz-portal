@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import type { PortalPrivateSnapshot } from "@emperatriz/types";
 import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+import { markPortalToastSeen, shouldShowPortalToast } from "@/lib/portal-toast";
 
 export interface PortalOutletContext {
   profile: PortalProfileDoc | null;
@@ -59,7 +60,7 @@ export default function PortalLayout() {
   const canPurchase = privateStateConnected ? rtdbCanPurchase : depositStatus === "approved";
   const displayName = profile?.name || user?.name || "Clienta";
   const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle({
-    enabled: canPurchase,
+    enabled: Boolean(user?.uid && profile),
     pollWhileActive: !isLivePage,
   });
   const wasLivePageRef = useRef(isLivePage);
@@ -96,9 +97,22 @@ export default function PortalLayout() {
 
   useEffect(() => {
     const toast = privateSnapshot?.toast;
-    if (!toast || toast.id === handledToastIdRef.current) return;
+    if (!toast) return;
+
+    if (
+      !shouldShowPortalToast(toast, {
+        depositStatus,
+        canPurchase: rtdbCanPurchase,
+      })
+    ) {
+      markPortalToastSeen(toast.id);
+      return;
+    }
+
+    if (toast.id === handledToastIdRef.current) return;
 
     handledToastIdRef.current = toast.id;
+    markPortalToastSeen(toast.id);
 
     if (toast.type === "cart_approved" || toast.type === "can_purchase") {
       bumpProfileReload();
@@ -111,6 +125,8 @@ export default function PortalLayout() {
     }
   }, [
     privateSnapshot?.toast,
+    depositStatus,
+    rtdbCanPurchase,
     bumpProfileReload,
     setToast,
   ]);

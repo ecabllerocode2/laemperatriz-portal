@@ -1,9 +1,12 @@
 import { X } from "lucide-react";
 import type { PortalBlockReason, PortalPrivateToast } from "@emperatriz/types";
 import { livePurchaseBlockMessage } from "@/lib/live-purchase-block";
+import { shouldShowPortalToast } from "@/lib/portal-toast";
+import type { DepositStatus } from "@/types/portal-profile";
 
 interface LivePurchaseGateProps {
   canPurchase: boolean;
+  depositStatus: DepositStatus;
   blockReason: PortalBlockReason;
   thresholdBlock?: {
     orderedTotal: number;
@@ -19,6 +22,7 @@ interface LivePurchaseGateProps {
 
 export default function LivePurchaseGate({
   canPurchase,
+  depositStatus,
   blockReason,
   thresholdBlock,
   toast,
@@ -28,7 +32,10 @@ export default function LivePurchaseGate({
   onPayThreshold,
   variant = "overlay",
 }: LivePurchaseGateProps) {
-  const showToast = toast && toast.id !== dismissedToastId;
+  const showToast =
+    toast &&
+    toast.id !== dismissedToastId &&
+    shouldShowPortalToast(toast, { depositStatus, canPurchase });
   const bannerText = livePurchaseBlockMessage(blockReason, thresholdBlock ?? undefined);
 
   if (canPurchase && !showToast) return null;

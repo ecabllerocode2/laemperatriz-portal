@@ -10,11 +10,14 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+import type { DepositStatus } from "@/types/portal-profile";
+
 interface LiveBannerProps {
   cartActive: boolean;
+  depositStatus?: DepositStatus;
 }
 
-export default function LiveBanner({ cartActive }: LiveBannerProps) {
+export default function LiveBanner({ cartActive, depositStatus = "none" }: LiveBannerProps) {
   const navigate = useNavigate();
 
   return (
@@ -22,7 +25,7 @@ export default function LiveBanner({ cartActive }: LiveBannerProps) {
       <h2 className="text-center font-display text-lg leading-snug text-brand-night sm:text-xl">
         {cartActive ? "¡Entra al live y aparta piezas!" : "¡Entra al live de La Emperatriz!"}
       </h2>
-      {!cartActive ? (
+      {!cartActive && depositStatus !== "approved" ? (
         <p className="mt-2 text-center text-sm text-neutral-600">
           Puedes ver la transmisión sin carrito. Actívalo cuando quieras comprar.
         </p>
