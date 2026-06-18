@@ -1,5 +1,6 @@
 import { ChevronRight, Clock } from "lucide-react";
 import type { PortalSaleNote } from "@emperatriz/types";
+import NoteTotalBreakdown from "@/components/purchases/NoteTotalBreakdown";
 import { useDeadlineCountdown } from "@/hooks/useDeadlineCountdown";
 import { formatCountdown, formatCurrency } from "@/lib/format";
 
@@ -25,7 +26,6 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
   const itemCount = note.items.reduce((sum, item) => sum + item.quantity, 0);
   const pending = note.status === "pending_payment";
   const balance = Math.max(0, note.total - note.paidAmount);
-  const showEarlyPayBreakdown = pending && note.earlyPayActive && note.discount > 0;
   const earlyPayRemainingMs = useDeadlineCountdown(
     note.earlyPayDeadline,
     Boolean(note.earlyPayActive && pending),
@@ -37,26 +37,7 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium text-neutral-400">Nota #{index + 1}</p>
-          {showEarlyPayBreakdown ? (
-            <div className="mt-1 space-y-0.5">
-              <p className="text-sm text-neutral-400 line-through">
-                {formatCurrency(note.subtotal)}
-              </p>
-              <p className="text-lg font-bold text-brand-night">{formatCurrency(note.total)}</p>
-              <p className="text-xs font-medium text-emerald-700">
-                Ahorras {formatCurrency(note.discount)} con pronto pago
-              </p>
-            </div>
-          ) : (
-            <>
-              <p className="text-lg font-bold text-brand-night">{formatCurrency(note.total)}</p>
-              {note.discount > 0 ? (
-                <p className="text-xs text-emerald-700">
-                  Descuento pronto pago: -{formatCurrency(note.discount)}
-                </p>
-              ) : null}
-            </>
-          )}
+          <NoteTotalBreakdown note={note} showDiscount={pending} className="mt-1" />
         </div>
         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
           {badge.text}
