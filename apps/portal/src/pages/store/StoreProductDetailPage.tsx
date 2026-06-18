@@ -11,7 +11,7 @@ import {
   fetchStoreProduct,
   storeProductToFeatured,
 } from "@/lib/portal-store";
-import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
+import { earlyPayLineTotal } from "@/lib/sale-channels";
 import { normalizeProductVariants } from "@/lib/product-variants";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
@@ -109,7 +109,6 @@ export default function StoreProductDetailPage() {
     );
   }
 
-  const channel = saleChannelOption(product.saleChannel);
   const hasEarlyPay = product.earlyPayDiscountPercent > 0;
   const pricing = earlyPayLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const variants = normalizeProductVariants(storeProductToFeatured(product));
@@ -154,14 +153,9 @@ export default function StoreProductDetailPage() {
 
           <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
             <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${channel.badgeClass}`}
-              >
-                Canal {channel.label.toLowerCase()}
-              </span>
               {hasEarlyPay ? (
                 <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
-                  −{product.earlyPayDiscountPercent}% pronto pago
+                  Descuento −{product.earlyPayDiscountPercent}%
                 </span>
               ) : null}
             </div>

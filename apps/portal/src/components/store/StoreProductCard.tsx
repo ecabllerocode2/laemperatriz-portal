@@ -1,6 +1,6 @@
 import type { PortalStoreProduct } from "@emperatriz/types";
 import { formatCurrency } from "@/lib/format";
-import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
+import { earlyPayLineTotal } from "@/lib/sale-channels";
 
 interface StoreProductCardProps {
   product: PortalStoreProduct;
@@ -8,7 +8,6 @@ interface StoreProductCardProps {
 }
 
 export default function StoreProductCard({ product, onSelect }: StoreProductCardProps) {
-  const channel = saleChannelOption(product.saleChannel);
   const hasEarlyPay = product.earlyPayDiscountPercent > 0;
   const pricing = earlyPayLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const soldOut = product.stock < 1;
@@ -33,15 +32,10 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
             Sin foto
           </div>
         )}
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2">
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-sm ${channel.badgeClass}`}
-          >
-            {channel.label}
-          </span>
+        <div className="absolute inset-x-0 top-0 flex items-start justify-end gap-2 p-2">
           {hasEarlyPay ? (
             <span className="rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-              −{product.earlyPayDiscountPercent}%
+              Descuento −{product.earlyPayDiscountPercent}%
             </span>
           ) : null}
         </div>

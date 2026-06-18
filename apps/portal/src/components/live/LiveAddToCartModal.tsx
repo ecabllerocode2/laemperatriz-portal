@@ -14,7 +14,7 @@ import {
   resolveConfirmVariantId,
   variantsNeedSelection,
 } from "@/lib/product-variants";
-import { earlyPayLineTotal, saleChannelOption } from "@/lib/sale-channels";
+import { earlyPayLineTotal } from "@/lib/sale-channels";
 
 interface LiveAddToCartModalProps {
   open: boolean;
@@ -106,7 +106,6 @@ export default function LiveAddToCartModal({
 
   const maxQty = Math.max(1, availableStock);
   const safeQty = Math.min(quantity, maxQty);
-  const channel = saleChannelOption(product.saleChannel);
   const hasEarlyPay = product.earlyPayDiscountPercent > 0;
   const images = productImages(product);
 
@@ -174,10 +173,7 @@ export default function LiveAddToCartModal({
                     {formatCurrency(pricing.subtotal)}
                   </p>
                   <p className="text-lg font-bold text-brand-red">
-                    {formatCurrency(pricing.total)} con pronto pago
-                  </p>
-                  <p className="text-xs font-medium text-emerald-700">
-                    Ahorras {formatCurrency(pricing.discount)} ({product.earlyPayDiscountPercent}%)
+                    {formatCurrency(pricing.total)}
                   </p>
                 </div>
               ) : (
@@ -188,12 +184,6 @@ export default function LiveAddToCartModal({
               <p className="mt-1 text-xs text-neutral-500">
                 {availableStock > 0 ? `${availableStock} disponibles` : "Agotado"}
               </p>
-              <span
-                className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${channel.badgeClass}`}
-              >
-                Canal {channel.label.toLowerCase()}
-                {hasEarlyPay ? " · elegible para pronto pago" : " · sin pronto pago"}
-              </span>
             </div>
           </div>
 

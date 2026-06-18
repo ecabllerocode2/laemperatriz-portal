@@ -101,6 +101,8 @@ export interface Product {
   stockAlertThreshold: number;
   /** Color de nota fijado al dar de alta el producto en inventario. */
   saleChannel: ProductSaleChannel;
+  /** Descuento de pronto pago (0–100, múltiplos de 5). Solo si saleChannel !== no_discount. */
+  earlyPayDiscountPercent?: number;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -146,6 +148,8 @@ export interface SaleNoteItem {
   variantSize?: string;
   /** Dónde se apartó la pieza: transmisión en vivo o tienda en línea. */
   saleOrigin?: SaleOrigin;
+  /** Descuento de pronto pago aplicable a este ítem (snapshot al vender). */
+  earlyPayDiscountPercent?: number;
 }
 
 /**
