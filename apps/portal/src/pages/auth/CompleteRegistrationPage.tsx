@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
+import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { linkPortalCustomer } from "@/lib/portal-customer";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -94,6 +95,9 @@ export default function CompleteRegistrationPage() {
             error={errors.postalCode?.message}
             registration={register("postalCode")}
           />
+          <div className="-mt-2 flex justify-end">
+            <PostalCodeHelpLink />
+          </div>
 
           {serverError ? (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red">

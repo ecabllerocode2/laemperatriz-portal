@@ -711,3 +711,11 @@ export interface StaffPaymentsSummary {
 }
 
 export type PaymentConcept = "cart_opening" | "note_payment" | "shipping_payment";
+
+export {
+  PERSONAL_DELIVERY_MIN_PURCHASE_MXN,
+  normalizePostalCode,
+  isPersonalDeliveryPostalCode,
+  type FulfillmentDeliveryMethod,
+} from "./personal-delivery.js";
+export { PERSONAL_DELIVERY_POSTAL_CODES } from "./personal-delivery-postal-codes.js";

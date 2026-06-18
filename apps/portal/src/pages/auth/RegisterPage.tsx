@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { Lock, Mail, MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
+import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { auth } from "@/lib/firebase";
 import { linkPortalCustomer } from "@/lib/portal-customer";
 import { useAuthStore } from "@/stores/auth.store";
@@ -130,6 +131,9 @@ export default function RegisterPage() {
             error={errors.postalCode?.message}
             registration={register("postalCode")}
           />
+          <div className="-mt-2 flex justify-end">
+            <PostalCodeHelpLink />
+          </div>
 
           <AuthInput
             id="password"
