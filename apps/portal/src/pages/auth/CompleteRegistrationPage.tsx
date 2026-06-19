@@ -2,27 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
 import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { linkPortalCustomer } from "@/lib/portal-customer";
+import {
+  portalRegistrationFieldsSchema,
+  type PortalRegistrationFields,
+} from "@/lib/registration-schema";
 import { useAuthStore } from "@/stores/auth.store";
-
-const schema = z.object({
-  name: z.string().min(2, "Ingresa tu nombre completo"),
-  phone: z
-    .string()
-    .min(10, "Ingresa un teléfono válido")
-    .regex(/^[\d+\s()-]+$/, "Teléfono inválido"),
-  postalCode: z
-    .string()
-    .min(5, "Ingresa tu código postal")
-    .max(6, "Máximo 6 dígitos")
-    .regex(/^\d+$/, "Solo números"),
-});
-
-type Form = z.infer<typeof schema>;
 
 export default function CompleteRegistrationPage() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -33,14 +21,14 @@ export default function CompleteRegistrationPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<Form>({
-    resolver: zodResolver(schema),
+  } = useForm<PortalRegistrationFields>({
+    resolver: zodResolver(portalRegistrationFieldsSchema),
     defaultValues: {
       name: user?.name ?? "",
     },
   });
 
-  const onSubmit = async (data: Form) => {
+  const onSubmit = async (data: PortalRegistrationFields) => {
     setServerError(null);
     try {
       await linkPortalCustomer(data);
@@ -78,13 +66,32 @@ export default function CompleteRegistrationPage() {
           />
 
           <AuthInput
+            id="socialAlias"
+            label="Nombre en redes sociales"
+            icon={User}
+            placeholder="Como te identifican en Facebook o WhatsApp"
+            error={errors.socialAlias?.message}
+            registration={register("socialAlias")}
+          />
+
+          <AuthInput
             id="phone"
             label="Teléfono"
             icon={Phone}
             type="tel"
-            placeholder="10 dígitos"
+            placeholder="10 dígitos, con o sin +52"
             error={errors.phone?.message}
             registration={register("phone")}
+          />
+
+          <AuthInput
+            id="confirmPhone"
+            label="Confirmar teléfono"
+            icon={Phone}
+            type="tel"
+            placeholder="Repite tu teléfono"
+            error={errors.confirmPhone?.message}
+            registration={register("confirmPhone")}
           />
 
           <AuthInput

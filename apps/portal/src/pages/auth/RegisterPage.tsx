@@ -2,31 +2,17 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { Lock, Mail, MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
 import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { auth } from "@/lib/firebase";
 import { linkPortalCustomer } from "@/lib/portal-customer";
+import {
+  portalRegisterAccountSchema,
+  type PortalRegisterAccountForm,
+} from "@/lib/registration-schema";
 import { useAuthStore } from "@/stores/auth.store";
-
-const registerSchema = z.object({
-  email: z.string().email("Correo inválido"),
-  name: z.string().min(2, "Ingresa tu nombre completo"),
-  phone: z
-    .string()
-    .min(10, "Ingresa un teléfono válido")
-    .regex(/^[\d+\s()-]+$/, "Teléfono inválido"),
-  postalCode: z
-    .string()
-    .min(5, "Ingresa tu código postal")
-    .max(6, "Máximo 6 dígitos")
-    .regex(/^\d+$/, "Solo números"),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -43,21 +29,28 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<PortalRegisterAccountForm>({
+    resolver: zodResolver(portalRegisterAccountSchema),
     defaultValues: {
       email: emailFromQuery,
+      confirmEmail: emailFromQuery,
     },
   });
 
-  const onSubmit = async (data: RegisterForm) => {
+  const onSubmit = async (data: PortalRegisterAccountForm) => {
     setServerError(null);
     try {
-      const credential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        data.email.trim().toLowerCase(),
+        data.password,
+      );
       await updateProfile(credential.user, { displayName: data.name });
       await linkPortalCustomer({
         name: data.name,
+        socialAlias: data.socialAlias,
         phone: data.phone,
+        confirmPhone: data.confirmPhone,
         postalCode: data.postalCode,
       });
     } catch (err: unknown) {
@@ -106,6 +99,17 @@ export default function RegisterPage() {
           />
 
           <AuthInput
+            id="confirmEmail"
+            label="Confirmar email"
+            icon={Mail}
+            type="email"
+            highlighted
+            readOnly={Boolean(emailFromQuery)}
+            error={errors.confirmEmail?.message}
+            registration={register("confirmEmail")}
+          />
+
+          <AuthInput
             id="name"
             label="Nombre completo"
             icon={User}
@@ -114,13 +118,32 @@ export default function RegisterPage() {
           />
 
           <AuthInput
+            id="socialAlias"
+            label="Nombre en redes sociales"
+            icon={User}
+            placeholder="Como te identifican en Facebook o WhatsApp"
+            error={errors.socialAlias?.message}
+            registration={register("socialAlias")}
+          />
+
+          <AuthInput
             id="phone"
             label="Teléfono"
             icon={Phone}
             type="tel"
-            placeholder="10 dígitos"
+            placeholder="10 dígitos, con o sin +52"
             error={errors.phone?.message}
             registration={register("phone")}
+          />
+
+          <AuthInput
+            id="confirmPhone"
+            label="Confirmar teléfono"
+            icon={Phone}
+            type="tel"
+            placeholder="Repite tu teléfono"
+            error={errors.confirmPhone?.message}
+            registration={register("confirmPhone")}
           />
 
           <AuthInput
