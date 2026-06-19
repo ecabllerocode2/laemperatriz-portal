@@ -14,7 +14,7 @@ import {
   resolveConfirmVariantId,
   variantsNeedSelection,
 } from "@/lib/product-variants";
-import { earlyPayLineTotal } from "@/lib/sale-channels";
+import { earlyPayLineTotal, productDiscountLineTotal } from "@/lib/sale-channels";
 
 interface LiveAddToCartModalProps {
   open: boolean;
@@ -96,7 +96,7 @@ export default function LiveAddToCartModal({
 
   const pricing = useMemo(() => {
     if (!product) return null;
-    return earlyPayLineTotal(product.price, quantity, product.earlyPayDiscountPercent);
+    return productDiscountLineTotal(product.price, quantity, product.earlyPayDiscountPercent);
   }, [product, quantity]);
 
   const blockKind = resolveLivePurchaseBlockKind({ canPurchase: cartActive, blockReason });
@@ -106,7 +106,7 @@ export default function LiveAddToCartModal({
 
   const maxQty = Math.max(1, availableStock);
   const safeQty = Math.min(quantity, maxQty);
-  const hasEarlyPay = product.earlyPayDiscountPercent > 0;
+  const hasProductDiscount = product.earlyPayDiscountPercent > 0;
   const images = productImages(product);
 
   return (
@@ -167,7 +167,7 @@ export default function LiveAddToCartModal({
             </button>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-brand-night">{product.name}</p>
-              {hasEarlyPay ? (
+              {hasProductDiscount ? (
                 <div className="mt-1 space-y-0.5">
                   <p className="text-sm text-neutral-400 line-through">
                     {formatCurrency(pricing.subtotal)}
@@ -235,7 +235,7 @@ export default function LiveAddToCartModal({
                     <Plus className="size-4" />
                   </button>
                 </div>
-                {hasEarlyPay && safeQty > 1 ? (
+                {hasProductDiscount && safeQty > 1 ? (
                   <p className="mt-2 text-xs text-neutral-500">
                     Total con pronto pago:{" "}
                     {formatCurrency(

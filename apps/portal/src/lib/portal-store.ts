@@ -60,6 +60,7 @@ export function storeProductToFeatured(product: PortalStoreProduct) {
     shownAt: null,
     saleChannel: product.saleChannel,
     earlyPayDiscountPercent: product.earlyPayDiscountPercent,
+    channelEarlyPayPercent: product.channelEarlyPayPercent,
     ...(product.variants ? { variants: product.variants } : {}),
   };
 }

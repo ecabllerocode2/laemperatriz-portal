@@ -148,7 +148,9 @@ export interface SaleNoteItem {
   variantSize?: string;
   /** Dónde se apartó la pieza: transmisión en vivo o tienda en línea. */
   saleOrigin?: SaleOrigin;
-  /** Descuento de pronto pago aplicable a este ítem (snapshot al vender). */
+  /** Descuento adicional del producto (snapshot al vender). */
+  productDiscountPercent?: number;
+  /** @deprecated Usar productDiscountPercent. Se conserva en notas legacy. */
   earlyPayDiscountPercent?: number;
 }
 
@@ -587,8 +589,10 @@ export interface PortalFeaturedProduct {
   imageUrls: string[];
   shownAt: string | null;
   saleChannel: ProductSaleChannel;
-  /** % de descuento del producto (0 si sin descuento). */
+  /** % de descuento adicional del producto (0 si sin descuento). */
   earlyPayDiscountPercent: number;
+  /** % de pronto pago del canal verde/azul (0 en naranja). */
+  channelEarlyPayPercent: number;
   /** Variantes disponibles al mostrar (stock por color/talla). */
   variants?: ProductVariant[];
 }
@@ -605,7 +609,10 @@ export interface PortalStoreProduct {
   imageUrl: string | null;
   imageUrls: string[];
   saleChannel: ProductSaleChannel;
+  /** % de descuento adicional del producto (0 si sin descuento). */
   earlyPayDiscountPercent: number;
+  /** % de pronto pago del canal verde/azul (0 en naranja). */
+  channelEarlyPayPercent: number;
   variants?: ProductVariant[];
 }
 

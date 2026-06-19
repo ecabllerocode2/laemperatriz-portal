@@ -1,6 +1,6 @@
 import type { PortalStoreProduct } from "@emperatriz/types";
 import { formatCurrency } from "@/lib/format";
-import { earlyPayLineTotal } from "@/lib/sale-channels";
+import { productDiscountLineTotal } from "@/lib/sale-channels";
 
 interface StoreProductCardProps {
   product: PortalStoreProduct;
@@ -8,8 +8,8 @@ interface StoreProductCardProps {
 }
 
 export default function StoreProductCard({ product, onSelect }: StoreProductCardProps) {
-  const hasEarlyPay = product.earlyPayDiscountPercent > 0;
-  const pricing = earlyPayLineTotal(product.price, 1, product.earlyPayDiscountPercent);
+  const hasProductDiscount = product.earlyPayDiscountPercent > 0;
+  const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const soldOut = product.stock < 1;
 
   return (
@@ -33,7 +33,7 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
           </div>
         )}
         <div className="absolute inset-x-0 top-0 flex items-start justify-end gap-2 p-2">
-          {hasEarlyPay ? (
+          {hasProductDiscount ? (
             <span className="rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
               Descuento −{product.earlyPayDiscountPercent}%
             </span>
@@ -51,7 +51,7 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
           {product.name}
         </p>
         <div className="mt-auto pt-2">
-          {hasEarlyPay ? (
+          {hasProductDiscount ? (
             <div className="space-y-0.5">
               <p className="text-xs text-neutral-400 line-through">{formatCurrency(pricing.subtotal)}</p>
               <p className="text-base font-bold text-brand-red">{formatCurrency(pricing.total)}</p>

@@ -38,12 +38,24 @@ export function saleChannelOption(channel: ProductSaleChannel): SaleChannelOptio
 export function earlyPayLineTotal(
   price: number,
   quantity: number,
-  earlyPayDiscountPercent: number,
+  discountPercent: number,
 ): { subtotal: number; discount: number; total: number } {
   const subtotal = price * quantity;
-  if (earlyPayDiscountPercent <= 0) {
+  if (discountPercent <= 0) {
     return { subtotal, discount: 0, total: subtotal };
   }
-  const discount = Math.round(subtotal * earlyPayDiscountPercent) / 100;
+  const discount = Math.round(subtotal * discountPercent) / 100;
   return { subtotal, discount, total: subtotal - discount };
+}
+
+export function productDiscountLineTotal(
+  price: number,
+  quantity: number,
+  productDiscountPercent: number,
+): { subtotal: number; discount: number; total: number } {
+  return earlyPayLineTotal(price, quantity, productDiscountPercent);
+}
+
+export function isChannelEarlyPayEligible(saleChannel: ProductSaleChannel): boolean {
+  return saleChannel === "whatsapp" || saleChannel === "facebook";
 }

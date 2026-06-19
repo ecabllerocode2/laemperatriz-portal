@@ -45,6 +45,12 @@ function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
         : "no_discount",
     earlyPayDiscountPercent:
       typeof row["earlyPayDiscountPercent"] === "number" ? row["earlyPayDiscountPercent"] : 0,
+    channelEarlyPayPercent:
+      typeof row["channelEarlyPayPercent"] === "number"
+        ? row["channelEarlyPayPercent"]
+        : row["saleChannel"] === "whatsapp" || row["saleChannel"] === "facebook"
+          ? 10
+          : 0,
     ...(parsedVariants ? { variants: parsedVariants } : {}),
   };
 }

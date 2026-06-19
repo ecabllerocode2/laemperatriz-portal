@@ -127,6 +127,17 @@ export default function StorePage() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950">
+          <p className="font-semibold">Pronto pago en piezas verdes y azules</p>
+          <p className="mt-1 text-emerald-900/90">
+            Al liquidar tu nota del día dentro de las 24 horas, recibes un{" "}
+            {products.find((product) => product.channelEarlyPayPercent > 0)?.channelEarlyPayPercent ??
+              10}
+            % de descuento de pronto pago. Si la pieza tiene descuento adicional, se suma durante ese
+            plazo; después del tiempo límite solo queda el descuento del producto.
+          </p>
+        </section>
+
         <section className="space-y-3 lg:space-y-4">
           <div className="relative lg:max-w-xl">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />

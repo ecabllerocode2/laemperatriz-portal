@@ -1,11 +1,18 @@
 import type { ReceiptModalOptions } from "@/components/cart/receipt-modal-config";
 import { apiRequest } from "@/lib/api";
-import type { PortalProfileDoc } from "@/types/portal-profile";
+import type { PortalProfileDoc, PortalProfileUpdatePayload } from "@/types/portal-profile";
 
 export const DEPOSIT_AMOUNT = 200;
 
 export async function fetchPortalProfile(): Promise<PortalProfileDoc | null> {
   return apiRequest<PortalProfileDoc | null>("/api/portal/profile");
+}
+
+export async function updatePortalProfile(payload: PortalProfileUpdatePayload): Promise<void> {
+  await apiRequest("/api/portal/profile", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
 
 function fileToBase64(file: File): Promise<string> {

@@ -11,7 +11,7 @@ import {
   fetchStoreProduct,
   storeProductToFeatured,
 } from "@/lib/portal-store";
-import { earlyPayLineTotal } from "@/lib/sale-channels";
+import { productDiscountLineTotal } from "@/lib/sale-channels";
 import { normalizeProductVariants } from "@/lib/product-variants";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
@@ -109,8 +109,8 @@ export default function StoreProductDetailPage() {
     );
   }
 
-  const hasEarlyPay = product.earlyPayDiscountPercent > 0;
-  const pricing = earlyPayLineTotal(product.price, 1, product.earlyPayDiscountPercent);
+  const hasProductDiscount = product.earlyPayDiscountPercent > 0;
+  const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const variants = normalizeProductVariants(storeProductToFeatured(product));
   const variantSummary = variants
     .filter((variant) => variant.stock > 0)
@@ -153,7 +153,7 @@ export default function StoreProductDetailPage() {
 
           <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
             <div className="flex flex-wrap items-center gap-2">
-              {hasEarlyPay ? (
+              {hasProductDiscount ? (
                 <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
                   Descuento −{product.earlyPayDiscountPercent}%
                 </span>
@@ -167,7 +167,7 @@ export default function StoreProductDetailPage() {
               <p className="mt-1 text-xs text-neutral-500 lg:text-sm">SKU {product.sku}</p>
             </div>
 
-            {hasEarlyPay ? (
+            {hasProductDiscount ? (
               <div className="space-y-1">
                 <p className="text-sm text-neutral-400 line-through">{formatCurrency(pricing.subtotal)}</p>
                 <p className="text-2xl font-bold text-brand-red">{formatCurrency(pricing.total)}</p>

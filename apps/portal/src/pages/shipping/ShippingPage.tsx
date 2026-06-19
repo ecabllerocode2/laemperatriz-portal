@@ -6,6 +6,8 @@ import LiveBanner from "@/components/home/LiveBanner";
 import LiquidationAlertsBanner from "@/components/shipping/LiquidationAlertsBanner";
 import ShipmentCard from "@/components/shipping/ShipmentCard";
 import ShipmentDetailModal from "@/components/shipping/ShipmentDetailModal";
+import ShippingAddressPreview from "@/components/shipping/ShippingAddressPreview";
+import type { ShippingAddressDetail } from "@/types/portal-profile";
 import { usePortalShipments } from "@/hooks/usePortalShipments";
 import { confirmFreeSettlement } from "@/lib/portal-cycle";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
@@ -22,6 +24,7 @@ export default function ShippingPage() {
     history,
     needsShippingAddress,
     shippingAddress,
+    shippingAddressDetail,
     loading,
     error,
     reload,
@@ -61,36 +64,13 @@ export default function ShippingPage() {
         <LiquidationAlertsBanner alerts={shipment.liquidationAlerts} />
       ) : null}
 
-      {hasApprovedDeposit && needsShippingAddress ? (
-        <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 shadow-sm">
-          <h3 className="text-sm font-bold text-amber-900">Falta tu dirección de envío</h3>
-          <p className="mt-1 text-sm text-amber-900/90">
-            Captúrala para que podamos armar tu paquete y generar la guía.
-          </p>
-          <button
-            type="button"
-            onClick={openShippingAddressModal}
-            className="mt-3 rounded-xl bg-brand-night px-4 py-2.5 text-sm font-semibold text-white"
-          >
-            Capturar dirección
-          </button>
-        </section>
-      ) : hasApprovedDeposit && shippingAddress ? (
-        <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-brand-night">Dirección de envío</h3>
-              <p className="mt-1 text-sm text-neutral-600">{shippingAddress}</p>
-            </div>
-            <button
-              type="button"
-              onClick={openShippingAddressModal}
-              className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-brand-night hover:bg-neutral-50"
-            >
-              Editar
-            </button>
-          </div>
-        </section>
+      {hasApprovedDeposit ? (
+        <ShippingAddressPreview
+          formatted={shippingAddress}
+          detail={(shippingAddressDetail as ShippingAddressDetail | null | undefined) ?? null}
+          missing={needsShippingAddress}
+          onEdit={openShippingAddressModal}
+        />
       ) : null}
 
       <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5">
