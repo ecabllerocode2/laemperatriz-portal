@@ -723,3 +723,11 @@ export {
   type FulfillmentDeliveryMethod,
 } from "./personal-delivery.js";
 export { PERSONAL_DELIVERY_POSTAL_CODES } from "./personal-delivery-postal-codes.js";
+export {
+  isValidEmail,
+  isValidMexicanPhone,
+  mexicanPhoneNationalDigits,
+  normalizeEmail,
+  normalizeMexicanPhone,
+  phonesMatch,
+} from "./phone.js";

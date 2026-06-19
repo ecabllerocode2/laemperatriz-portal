@@ -13,7 +13,9 @@ async function ensureCustomerLinked(): Promise<string | undefined> {
   try {
     return await linkPortalCustomer({
       name: profile.name,
+      socialAlias: profile.socialAlias?.trim() || profile.name.trim(),
       phone: profile.phone,
+      confirmPhone: profile.phone,
       postalCode: profile.postalCode,
     });
   } catch {

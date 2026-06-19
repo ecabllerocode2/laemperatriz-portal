@@ -4,6 +4,7 @@ export interface PortalProfileDoc {
   uid: string;
   email: string;
   name: string;
+  socialAlias?: string;
   phone: string;
   postalCode: string;
   depositStatus: DepositStatus;
