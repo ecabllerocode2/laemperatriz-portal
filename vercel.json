@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm --filter @emperatriz/portal build",
-  "outputDirectory": "apps/portal/dist",
+  "buildCommand": "pnpm --filter @emperatriz/portal build && rm -rf dist && cp -r apps/portal/dist dist",
+  "outputDirectory": "dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "headers": [
     {
