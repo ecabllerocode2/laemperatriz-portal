@@ -95,6 +95,14 @@ export default function LoginPage() {
             {errors.password ? (
               <p className="mt-1 text-xs text-brand-red">{errors.password.message}</p>
             ) : null}
+            <p className="mt-2 text-right text-sm">
+              <Link
+                to={email ? `/recuperar-contrasena?email=${encodeURIComponent(email)}` : "/recuperar-contrasena"}
+                className="font-medium text-sky-600 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </p>
           </div>
 
           {serverError ? (

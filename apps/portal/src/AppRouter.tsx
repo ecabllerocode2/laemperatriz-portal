@@ -3,6 +3,7 @@ import GuestRoute from "@/components/layout/GuestRoute";
 import PortalLayout from "@/components/layout/PortalLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import CompleteRegistrationPage from "@/pages/auth/CompleteRegistrationPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import PaymentsPage from "@/pages/payments/PaymentsPage";
@@ -19,6 +20,14 @@ const router = createBrowserRouter([
     element: (
       <GuestRoute>
         <LoginPage />
+      </GuestRoute>
+    ),
+  },
+  {
+    path: "/recuperar-contrasena",
+    element: (
+      <GuestRoute>
+        <ForgotPasswordPage />
       </GuestRoute>
     ),
   },
