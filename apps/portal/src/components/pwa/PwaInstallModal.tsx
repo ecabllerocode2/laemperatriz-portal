@@ -96,7 +96,7 @@ export default function PwaInstallModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[65] flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4">
       <div
         className="modal-sheet animate-sheet-up relative w-full max-w-md rounded-t-3xl bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-7 shadow-2xl sm:rounded-3xl sm:px-6 sm:pb-6 sm:pt-8"
         role="dialog"

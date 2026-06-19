@@ -133,13 +133,28 @@ export default function PortalLayout() {
 
   useEffect(() => {
     if (!profile || !shouldOfferInstall) return;
-    if (showCartModal || showAddressModal) return;
 
     let cancelled = false;
 
-    const prepareInstallModal = async () => {
-      await new Promise((resolve) => window.setTimeout(resolve, 800));
+    const waitUntil = async (predicate: () => boolean, timeoutMs = 120_000) => {
+      const start = Date.now();
+      while (!predicate()) {
+        if (cancelled || Date.now() - start > timeoutMs) return false;
+        await new Promise((resolve) => window.setTimeout(resolve, 250));
+      }
+      return true;
+    };
 
+    const prepareInstallModal = async () => {
+      const ready = await waitUntil(
+        () =>
+          !showCartModal &&
+          !showReceiptModal &&
+          !(addressRequired && showAddressModal),
+      );
+      if (!ready || cancelled) return;
+
+      await new Promise((resolve) => window.setTimeout(resolve, 800));
       if (cancelled) return;
 
       if ("serviceWorker" in navigator) {
@@ -162,7 +177,14 @@ export default function PortalLayout() {
     return () => {
       cancelled = true;
     };
-  }, [profile, shouldOfferInstall, showCartModal, showAddressModal]);
+  }, [
+    profile,
+    shouldOfferInstall,
+    showCartModal,
+    showReceiptModal,
+    addressRequired,
+    showAddressModal,
+  ]);
 
   return (
     <div
