@@ -57,7 +57,7 @@ export default function PortalLayout() {
     (privateSnapshot?.depositStatus as DepositStatus | undefined) ??
     profile?.depositStatus ??
     "none";
-  const canPurchase = privateStateConnected ? rtdbCanPurchase : depositStatus === "approved";
+  const canPurchase = privateStateConnected ? rtdbCanPurchase : false;
   const displayName = profile?.name || user?.name || "Clienta";
   const { needsShippingAddress, shippingAddressDetail, reload: reloadCycle } = usePortalCycle({
     enabled: Boolean(user?.uid && profile),
