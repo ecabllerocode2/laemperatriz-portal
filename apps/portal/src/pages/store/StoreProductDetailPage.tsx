@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import type { PortalStoreProduct } from "@emperatriz/types";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
-import LiveProductImageLightbox from "@/components/live/LiveProductImageLightbox";
+import ProductMediaCarousel from "@/components/store/ProductMediaCarousel";
 import ValidationBanner from "@/components/cart/ValidationBanner";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -28,7 +28,6 @@ export default function StoreProductDetailPage() {
   const [product, setProduct] = useState<PortalStoreProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [galleryOpen, setGalleryOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -139,20 +138,7 @@ export default function StoreProductDetailPage() {
         </button>
 
         <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
-          <button
-            type="button"
-            className="relative block aspect-[4/5] w-full bg-neutral-100 lg:sticky lg:top-6 lg:aspect-auto lg:min-h-[28rem] lg:self-start"
-            onClick={() => galleryMedia.length > 0 && setGalleryOpen(true)}
-          >
-            {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
-            ) : null}
-            {galleryMedia.length > 1 ? (
-              <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
-                {galleryMedia.length} archivos
-              </span>
-            ) : null}
-          </button>
+          <ProductMediaCarousel media={galleryMedia} productName={product.name} />
 
           <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
             <div className="flex flex-wrap items-center gap-2">
@@ -212,13 +198,6 @@ export default function StoreProductDetailPage() {
         onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
         onActivateCart={openCartModal}
         onPayThreshold={handlePayThreshold}
-      />
-
-      <LiveProductImageLightbox
-        open={galleryOpen}
-        media={galleryMedia}
-        productName={product.name}
-        onClose={() => setGalleryOpen(false)}
       />
     </>
   );
