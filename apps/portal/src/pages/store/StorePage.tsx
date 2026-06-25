@@ -127,9 +127,9 @@ export default function StorePage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950">
-          <p className="font-semibold">Pronto pago en piezas verdes y azules</p>
-          <p className="mt-1 text-emerald-900/90">
+        <section className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-950">
+          <p className="font-semibold">Pronto pago en piezas azules</p>
+          <p className="mt-1 text-blue-900/90">
             Al liquidar tu nota del día dentro de las 24 horas, recibes un{" "}
             {products.find((product) => product.channelEarlyPayPercent > 0)?.channelEarlyPayPercent ??
               10}

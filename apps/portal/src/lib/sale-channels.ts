@@ -1,4 +1,5 @@
 import type { ProductSaleChannel } from "@emperatriz/types";
+import { isEarlyPayProductChannel, normalizeProductSaleChannel, saleChannelUiLabel } from "@emperatriz/types";
 
 export interface SaleChannelOption {
   channel: ProductSaleChannel;
@@ -20,19 +21,18 @@ export const PRODUCT_SALE_CHANNEL_OPTIONS: SaleChannelOption[] = [
     badgeClass: "bg-orange-500/10 text-orange-600",
     dotClass: "bg-orange-500",
   },
-  {
-    channel: "whatsapp",
-    label: "Verde",
-    badgeClass: "bg-emerald-500/10 text-emerald-600",
-    dotClass: "bg-emerald-500",
-  },
 ];
 
 export function saleChannelOption(channel: ProductSaleChannel): SaleChannelOption {
+  const normalized = normalizeProductSaleChannel(channel);
   return (
-    PRODUCT_SALE_CHANNEL_OPTIONS.find((option) => option.channel === channel) ??
+    PRODUCT_SALE_CHANNEL_OPTIONS.find((option) => option.channel === normalized) ??
     PRODUCT_SALE_CHANNEL_OPTIONS[0]!
   );
+}
+
+export function saleChannelLabel(channel: ProductSaleChannel): string {
+  return saleChannelUiLabel(normalizeProductSaleChannel(channel));
 }
 
 export function earlyPayLineTotal(
@@ -57,5 +57,5 @@ export function productDiscountLineTotal(
 }
 
 export function isChannelEarlyPayEligible(saleChannel: ProductSaleChannel): boolean {
-  return saleChannel === "whatsapp" || saleChannel === "facebook";
+  return isEarlyPayProductChannel(saleChannel);
 }

@@ -70,6 +70,33 @@ export interface ProductImage {
   url: string;
   key: string;
   order: number;
+  /** Por defecto `image`. El primer medio de un producto debe ser imagen (miniatura). */
+  kind?: ProductMediaKind;
+}
+
+export type ProductMediaKind = "image" | "video";
+
+export interface ProductMediaItem {
+  url: string;
+  kind: ProductMediaKind;
+}
+
+/** Unifica verde legacy → azul. Solo naranja y azul en UI nueva. */
+export function normalizeProductSaleChannel(channel: ProductSaleChannel): ProductSaleChannel {
+  if (channel === "whatsapp") return "facebook";
+  return channel;
+}
+
+export function isEarlyPayProductChannel(
+  channel: ProductSaleChannel | SaleChannel | undefined,
+): boolean {
+  if (!channel || channel === "mixed") return false;
+  return channel === "facebook" || channel === "whatsapp";
+}
+
+export function saleChannelUiLabel(channel: ProductSaleChannel): string {
+  if (channel === "no_discount") return "Naranja";
+  return "Azul";
 }
 
 /** Valor por defecto cuando color/talla no aplican al producto. */
@@ -112,7 +139,8 @@ export interface Product {
 
 /**
  * Color de nota asignado al producto en inventario:
- * - `whatsapp` (verde) y `facebook` (azul): elegibles para descuento de pronto pago.
+ * - `facebook` (azul): elegible para descuento de pronto pago.
+ * - `whatsapp`: legacy — se trata igual que azul.
  * - `no_discount` (naranja): nunca recibe descuento de pronto pago.
  */
 export type ProductSaleChannel = "whatsapp" | "facebook" | "no_discount";
@@ -247,6 +275,8 @@ export interface Cycle {
   tier: CustomerTier;
   status: CycleStatus;
   depositAmount: number;
+  /** Si es false, la primera nota no recibe crédito del depósito de apertura. */
+  depositCreditEnabled?: boolean;
   depositConfirmedAt?: Timestamp;
   opensAt?: Timestamp;
   /** opensAt + purchaseWindowDays (fin de la ventana de compra). */
@@ -587,6 +617,8 @@ export interface PortalFeaturedProduct {
   imageUrl: string | null;
   /** Todas las imágenes del producto (orden de inventario). */
   imageUrls: string[];
+  /** Galería completa (imágenes y videos) para carruseles. */
+  mediaItems?: ProductMediaItem[];
   shownAt: string | null;
   saleChannel: ProductSaleChannel;
   /** % de descuento adicional del producto (0 si sin descuento). */
@@ -608,6 +640,7 @@ export interface PortalStoreProduct {
   stock: number;
   imageUrl: string | null;
   imageUrls: string[];
+  mediaItems?: ProductMediaItem[];
   saleChannel: ProductSaleChannel;
   /** % de descuento adicional del producto (0 si sin descuento). */
   earlyPayDiscountPercent: number;

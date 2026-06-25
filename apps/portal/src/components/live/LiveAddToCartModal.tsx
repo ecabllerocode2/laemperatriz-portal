@@ -15,6 +15,7 @@ import {
   variantsNeedSelection,
 } from "@/lib/product-variants";
 import { earlyPayLineTotal, productDiscountLineTotal } from "@/lib/sale-channels";
+import { productGalleryMedia } from "@/lib/product-media";
 
 interface LiveAddToCartModalProps {
   open: boolean;
@@ -36,7 +37,8 @@ interface LiveAddToCartModalProps {
 }
 
 function productImages(product: PortalFeaturedProduct): string[] {
-  if (product.imageUrls.length > 0) return product.imageUrls;
+  const media = productGalleryMedia(product);
+  if (media.length > 0) return media.map((item) => item.url);
   return product.imageUrl ? [product.imageUrl] : [];
 }
 
@@ -297,8 +299,8 @@ export default function LiveAddToCartModal({
 
       <LiveProductImageLightbox
         open={galleryOpen}
-        images={images}
-        productName={product.name}
+        media={product ? productGalleryMedia(product) : []}
+        productName={product?.name ?? ""}
         onClose={() => setGalleryOpen(false)}
       />
     </>

@@ -1,27 +1,62 @@
 import { useEffect, useId, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import type { ProductMediaItem } from "@emperatriz/types";
 
 interface LiveProductImageLightboxProps {
   open: boolean;
-  images: string[];
+  images?: string[];
+  media?: ProductMediaItem[];
   productName: string;
   initialIndex?: number;
   onClose: () => void;
 }
 
+function resolveMedia(
+  media: ProductMediaItem[] | undefined,
+  images: string[] | undefined,
+): ProductMediaItem[] {
+  if (media?.length) return media;
+  return (images ?? []).map((url) => ({ url, kind: "image" as const }));
+}
+
+function GalleryMedia({ item, productName, index }: { item: ProductMediaItem; productName: string; index: number }) {
+  if (item.kind === "video") {
+    return (
+      <video
+        src={item.url}
+        className="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+    );
+  }
+
+  return (
+    <img
+      src={item.url}
+      alt={`${productName} — imagen ${index + 1}`}
+      className="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+    />
+  );
+}
+
 export default function LiveProductImageLightbox({
   open,
   images,
+  media,
   productName,
   initialIndex = 0,
   onClose,
 }: LiveProductImageLightboxProps) {
   const titleId = useId();
+  const gallery = resolveMedia(media, images);
   const [index, setIndex] = useState(initialIndex);
 
   useEffect(() => {
-    if (open) setIndex(Math.min(initialIndex, Math.max(0, images.length - 1)));
-  }, [open, initialIndex, images.length]);
+    if (open) setIndex(Math.min(initialIndex, Math.max(0, gallery.length - 1)));
+  }, [open, initialIndex, gallery.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -31,8 +66,8 @@ export default function LiveProductImageLightbox({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowLeft") setIndex((i) => (i <= 0 ? images.length - 1 : i - 1));
-      if (event.key === "ArrowRight") setIndex((i) => (i >= images.length - 1 ? 0 : i + 1));
+      if (event.key === "ArrowLeft") setIndex((i) => (i <= 0 ? gallery.length - 1 : i - 1));
+      if (event.key === "ArrowRight") setIndex((i) => (i >= gallery.length - 1 ? 0 : i + 1));
     };
     window.addEventListener("keydown", onKeyDown);
 
@@ -40,12 +75,12 @@ export default function LiveProductImageLightbox({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose, images.length]);
+  }, [open, onClose, gallery.length]);
 
-  if (!open || images.length === 0) return null;
+  if (!open || gallery.length === 0) return null;
 
-  const safeIndex = Math.min(index, images.length - 1);
-  const current = images[safeIndex]!;
+  const safeIndex = Math.min(index, gallery.length - 1);
+  const current = gallery[safeIndex]!;
 
   return (
     <div className="fixed inset-0 z-[70] flex flex-col">
@@ -77,26 +112,22 @@ export default function LiveProductImageLightbox({
         </div>
 
         <div className="relative mx-auto flex min-h-0 w-full max-w-lg flex-1 items-center justify-center">
-          <img
-            src={current}
-            alt={`${productName} — imagen ${safeIndex + 1}`}
-            className="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
-          />
+          <GalleryMedia item={current} productName={productName} index={safeIndex} />
 
-          {images.length > 1 ? (
+          {gallery.length > 1 ? (
             <>
               <button
                 type="button"
-                aria-label="Imagen anterior"
-                onClick={() => setIndex((i) => (i <= 0 ? images.length - 1 : i - 1))}
+                aria-label="Media anterior"
+                onClick={() => setIndex((i) => (i <= 0 ? gallery.length - 1 : i - 1))}
                 className="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
               >
                 <ChevronLeft className="size-5" />
               </button>
               <button
                 type="button"
-                aria-label="Imagen siguiente"
-                onClick={() => setIndex((i) => (i >= images.length - 1 ? 0 : i + 1))}
+                aria-label="Media siguiente"
+                onClick={() => setIndex((i) => (i >= gallery.length - 1 ? 0 : i + 1))}
                 className="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
               >
                 <ChevronRight className="size-5" />
@@ -105,14 +136,14 @@ export default function LiveProductImageLightbox({
           ) : null}
         </div>
 
-        {images.length > 1 ? (
+        {gallery.length > 1 ? (
           <div className="mt-4 flex flex-col items-center gap-2">
             <div className="flex items-center justify-center gap-1.5">
-              {images.map((url, dotIndex) => (
+              {gallery.map((item, dotIndex) => (
                 <button
-                  key={url}
+                  key={`${item.url}-${dotIndex}`}
                   type="button"
-                  aria-label={`Ver imagen ${dotIndex + 1}`}
+                  aria-label={`Ver media ${dotIndex + 1}`}
                   onClick={() => setIndex(dotIndex)}
                   className={`size-2 rounded-full transition ${
                     dotIndex === safeIndex ? "bg-white" : "bg-white/40"
@@ -121,7 +152,7 @@ export default function LiveProductImageLightbox({
               ))}
             </div>
             <p className="text-xs text-white/80 drop-shadow">
-              {safeIndex + 1} de {images.length}
+              {safeIndex + 1} de {gallery.length}
             </p>
           </div>
         ) : null}

@@ -1,4 +1,4 @@
-import type { LivePublicSnapshot, PortalFeaturedProduct, PortalLiveSession, ProductVariant } from "@emperatriz/types";
+import type { LivePublicSnapshot, PortalFeaturedProduct, PortalLiveSession, ProductMediaItem, ProductVariant } from "@emperatriz/types";
 
 function parseVariants(raw: unknown): ProductVariant[] | undefined {
   if (!Array.isArray(raw)) return undefined;
@@ -19,6 +19,21 @@ function parseVariants(raw: unknown): ProductVariant[] | undefined {
   return variants.length > 0 ? variants : undefined;
 }
 
+function parseMediaItems(raw: unknown): ProductMediaItem[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const items = raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const url = typeof row["url"] === "string" ? row["url"] : "";
+      if (!url) return null;
+      const kind = row["kind"] === "video" ? "video" : "image";
+      return { url, kind } satisfies ProductMediaItem;
+    })
+    .filter((item): item is ProductMediaItem => item !== null);
+  return items.length > 0 ? items : undefined;
+}
+
 function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Record<string, unknown>;
@@ -26,6 +41,8 @@ function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
   if (!productId) return null;
 
   const parsedVariants = parseVariants(row["variants"]);
+
+  const parsedMedia = parseMediaItems(row["mediaItems"]);
 
   return {
     productId,
@@ -36,6 +53,7 @@ function parseFeaturedProduct(raw: unknown): PortalFeaturedProduct | null {
     imageUrls: Array.isArray(row["imageUrls"])
       ? row["imageUrls"].filter((item): item is string => typeof item === "string")
       : [],
+    ...(parsedMedia ? { mediaItems: parsedMedia } : {}),
     shownAt: typeof row["shownAt"] === "string" ? row["shownAt"] : null,
     saleChannel:
       row["saleChannel"] === "whatsapp" ||

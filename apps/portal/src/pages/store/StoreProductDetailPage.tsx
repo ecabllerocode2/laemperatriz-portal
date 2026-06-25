@@ -11,6 +11,7 @@ import {
   fetchStoreProduct,
   storeProductToFeatured,
 } from "@/lib/portal-store";
+import { productGalleryMedia } from "@/lib/product-media";
 import { productDiscountLineTotal } from "@/lib/sale-channels";
 import { normalizeProductVariants } from "@/lib/product-variants";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
@@ -121,6 +122,8 @@ export default function StoreProductDetailPage() {
     )
     .join(" · ");
 
+  const galleryMedia = productGalleryMedia(product);
+
   return (
     <>
       <div className="space-y-5">
@@ -139,14 +142,14 @@ export default function StoreProductDetailPage() {
           <button
             type="button"
             className="relative block aspect-[4/5] w-full bg-neutral-100 lg:sticky lg:top-6 lg:aspect-auto lg:min-h-[28rem] lg:self-start"
-            onClick={() => product.imageUrls.length > 0 && setGalleryOpen(true)}
+            onClick={() => galleryMedia.length > 0 && setGalleryOpen(true)}
           >
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
             ) : null}
-            {product.imageUrls.length > 1 ? (
+            {galleryMedia.length > 1 ? (
               <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
-                {product.imageUrls.length} fotos
+                {galleryMedia.length} archivos
               </span>
             ) : null}
           </button>
@@ -213,7 +216,7 @@ export default function StoreProductDetailPage() {
 
       <LiveProductImageLightbox
         open={galleryOpen}
-        images={product.imageUrls}
+        media={galleryMedia}
         productName={product.name}
         onClose={() => setGalleryOpen(false)}
       />

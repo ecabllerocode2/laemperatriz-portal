@@ -57,6 +57,7 @@ export function storeProductToFeatured(product: PortalStoreProduct) {
     stock: product.stock,
     imageUrl: product.imageUrl,
     imageUrls: product.imageUrls,
+    ...(product.mediaItems ? { mediaItems: product.mediaItems } : {}),
     shownAt: null,
     saleChannel: product.saleChannel,
     earlyPayDiscountPercent: product.earlyPayDiscountPercent,
