@@ -108,6 +108,18 @@ export interface ProductVariant {
   color: string;
   size: string;
   stock: number;
+  /** Galería propia de la variante (imágenes y videos). */
+  images?: ProductImage[];
+}
+
+/** Variante enriquecida para el portal (galería por color/talla). */
+export interface PortalProductVariant {
+  id: string;
+  color: string;
+  size: string;
+  stock: number;
+  imageUrl: string | null;
+  mediaItems: ProductMediaItem[];
 }
 
 export interface Product {
@@ -626,7 +638,7 @@ export interface PortalFeaturedProduct {
   /** % de pronto pago del canal verde/azul (0 en naranja). */
   channelEarlyPayPercent: number;
   /** Variantes disponibles al mostrar (stock por color/talla). */
-  variants?: ProductVariant[];
+  variants?: PortalProductVariant[];
 }
 
 /** Producto listado en la tienda en línea del portal. */
@@ -646,7 +658,7 @@ export interface PortalStoreProduct {
   earlyPayDiscountPercent: number;
   /** % de pronto pago del canal verde/azul (0 en naranja). */
   channelEarlyPayPercent: number;
-  variants?: ProductVariant[];
+  variants?: PortalProductVariant[];
 }
 
 export interface PortalStoreProductsResponse {

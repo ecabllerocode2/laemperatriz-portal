@@ -11,11 +11,12 @@ import {
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   normalizeProductVariants,
+  resolveActiveVariant,
   resolveConfirmVariantId,
   variantsNeedSelection,
 } from "@/lib/product-variants";
 import { earlyPayLineTotal, productDiscountLineTotal } from "@/lib/sale-channels";
-import { productGalleryMedia } from "@/lib/product-media";
+import { variantCoverImageUrl, variantGalleryMedia } from "@/lib/product-media";
 
 interface LiveAddToCartModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface LiveAddToCartModalProps {
     depositDue: number;
   } | null;
   submitting?: boolean;
+  initialVariantId?: string | null;
   onClose: () => void;
   onConfirm: (
     quantity: number,
@@ -36,8 +38,11 @@ interface LiveAddToCartModalProps {
   onPayThreshold?: () => void;
 }
 
-function productImages(product: PortalFeaturedProduct): string[] {
-  const media = productGalleryMedia(product);
+function productImages(
+  product: PortalFeaturedProduct,
+  variant: ReturnType<typeof resolveActiveVariant>,
+): string[] {
+  const media = variantGalleryMedia(variant, product);
   if (media.length > 0) return media.map((item) => item.url);
   return product.imageUrl ? [product.imageUrl] : [];
 }
@@ -49,6 +54,7 @@ export default function LiveAddToCartModal({
   blockReason = "cart_opening_required",
   thresholdBlock = null,
   submitting = false,
+  initialVariantId = null,
   onClose,
   onConfirm,
   onActivateCart,
@@ -65,19 +71,20 @@ export default function LiveAddToCartModal({
     [product],
   );
   const needsVariant = variantsNeedSelection(variants);
+  const activeVariant = resolveActiveVariant(variants, selectedVariantId);
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? null;
-  const availableStock = selectedVariant?.stock ?? product?.stock ?? 0;
+  const availableStock = selectedVariant?.stock ?? activeVariant?.stock ?? product?.stock ?? 0;
 
   useBodyScrollLock(open);
 
   useEffect(() => {
     if (open) {
       setQuantity(1);
-      setSelectedVariantId(null);
+      setSelectedVariantId(initialVariantId);
       setGalleryOpen(false);
       setVariantError(false);
     }
-  }, [open, product?.productId]);
+  }, [open, product?.productId, initialVariantId]);
 
   useEffect(() => {
     if (selectedVariant && quantity > selectedVariant.stock) {
@@ -109,7 +116,10 @@ export default function LiveAddToCartModal({
   const maxQty = Math.max(1, availableStock);
   const safeQty = Math.min(quantity, maxQty);
   const hasProductDiscount = product.earlyPayDiscountPercent > 0;
-  const images = productImages(product);
+  const displayVariant = selectedVariant ?? activeVariant;
+  const images = productImages(product, displayVariant);
+  const coverUrl = variantCoverImageUrl(displayVariant, product);
+  const galleryMedia = variantGalleryMedia(displayVariant, product);
 
   return (
     <>
@@ -151,8 +161,8 @@ export default function LiveAddToCartModal({
               onClick={() => images.length > 0 && setGalleryOpen(true)}
               className="group relative size-24 shrink-0 overflow-hidden rounded-xl bg-neutral-100 disabled:cursor-default"
             >
-              {product.imageUrl ? (
-                <img src={product.imageUrl} alt={product.name} className="size-full object-cover" />
+              {coverUrl ? (
+                <img src={coverUrl} alt={product.name} className="size-full object-cover" />
               ) : null}
               {images.length > 0 ? (
                 <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20">
@@ -299,7 +309,7 @@ export default function LiveAddToCartModal({
 
       <LiveProductImageLightbox
         open={galleryOpen}
-        media={product ? productGalleryMedia(product) : []}
+        media={galleryMedia}
         productName={product?.name ?? ""}
         onClose={() => setGalleryOpen(false)}
       />

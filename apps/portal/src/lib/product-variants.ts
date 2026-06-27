@@ -1,11 +1,11 @@
-import type { ProductVariant } from "@emperatriz/types";
+import type { PortalProductVariant } from "@emperatriz/types";
 
 export const VARIANT_NOT_APPLICABLE = "No aplica";
 export const DEFAULT_VARIANT_ID = "default";
 
 export function normalizeProductVariants(
-  product: Pick<{ stock: number; variants?: ProductVariant[] }, "stock" | "variants">,
-): ProductVariant[] {
+  product: Pick<{ stock: number; variants?: PortalProductVariant[] }, "stock" | "variants">,
+): PortalProductVariant[] {
   if (Array.isArray(product.variants) && product.variants.length > 0) {
     return product.variants;
   }
@@ -15,26 +15,28 @@ export function normalizeProductVariants(
       color: VARIANT_NOT_APPLICABLE,
       size: VARIANT_NOT_APPLICABLE,
       stock: product.stock ?? 0,
+      imageUrl: null,
+      mediaItems: [],
     },
   ];
 }
 
-export function variantsAvailableForSale(variants: ProductVariant[]): ProductVariant[] {
+export function variantsAvailableForSale(variants: PortalProductVariant[]): PortalProductVariant[] {
   return variants.filter((variant) => variant.stock > 0);
 }
 
-export function variantsNeedSelection(variants: ProductVariant[]): boolean {
+export function variantsNeedSelection(variants: PortalProductVariant[]): boolean {
   return variantsAvailableForSale(variants).length > 1;
 }
 
-export function formatVariantLabel(variant: Pick<ProductVariant, "color" | "size">): string | null {
+export function formatVariantLabel(variant: Pick<PortalProductVariant, "color" | "size">): string | null {
   const parts: string[] = [];
   if (variant.color && variant.color !== VARIANT_NOT_APPLICABLE) parts.push(variant.color);
   if (variant.size && variant.size !== VARIANT_NOT_APPLICABLE) parts.push(`Talla ${variant.size}`);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-export function resolveAutoVariantId(variants: ProductVariant[]): string | null {
+export function resolveAutoVariantId(variants: PortalProductVariant[]): string | null {
   const available = variantsAvailableForSale(variants);
   if (available.length !== 1) return null;
   return available[0]!.id;
@@ -42,7 +44,7 @@ export function resolveAutoVariantId(variants: ProductVariant[]): string | null 
 
 /** Variante a enviar al confirmar: selección manual o auto si solo hay una. */
 export function resolveConfirmVariantId(
-  variants: ProductVariant[],
+  variants: PortalProductVariant[],
   selectedVariantId: string | null,
 ): string | null {
   const available = variantsAvailableForSale(variants);
@@ -50,4 +52,16 @@ export function resolveConfirmVariantId(
     return selectedVariantId;
   }
   return resolveAutoVariantId(variants);
+}
+
+export function resolveActiveVariant(
+  variants: PortalProductVariant[],
+  selectedVariantId: string | null,
+): PortalProductVariant | null {
+  const available = variantsAvailableForSale(variants);
+  if (selectedVariantId) {
+    return available.find((variant) => variant.id === selectedVariantId) ?? null;
+  }
+  if (available.length === 1) return available[0]!;
+  return available[0] ?? null;
 }

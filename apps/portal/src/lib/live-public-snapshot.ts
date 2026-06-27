@@ -1,6 +1,26 @@
-import type { LivePublicSnapshot, PortalFeaturedProduct, PortalLiveSession, ProductMediaItem, ProductVariant } from "@emperatriz/types";
+import type {
+  LivePublicSnapshot,
+  PortalFeaturedProduct,
+  PortalLiveSession,
+  PortalProductVariant,
+  ProductMediaItem,
+} from "@emperatriz/types";
 
-function parseVariants(raw: unknown): ProductVariant[] | undefined {
+function parseVariantMedia(raw: unknown): ProductMediaItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const url = typeof row["url"] === "string" ? row["url"] : "";
+      if (!url) return null;
+      const kind = row["kind"] === "video" ? "video" : "image";
+      return { url, kind } satisfies ProductMediaItem;
+    })
+    .filter((item): item is ProductMediaItem => item !== null);
+}
+
+function parseVariants(raw: unknown): PortalProductVariant[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const variants = raw
     .map((item) => {
@@ -8,14 +28,23 @@ function parseVariants(raw: unknown): ProductVariant[] | undefined {
       const row = item as Record<string, unknown>;
       const id = typeof row["id"] === "string" ? row["id"] : "";
       if (!id) return null;
+      const mediaItems = parseVariantMedia(row["mediaItems"]);
+      const imageUrl =
+        typeof row["imageUrl"] === "string"
+          ? row["imageUrl"]
+          : mediaItems.find((media) => media.kind === "image")?.url ??
+            mediaItems[0]?.url ??
+            null;
       return {
         id,
         color: typeof row["color"] === "string" ? row["color"] : "No aplica",
         size: typeof row["size"] === "string" ? row["size"] : "No aplica",
         stock: typeof row["stock"] === "number" ? row["stock"] : 0,
-      } satisfies ProductVariant;
+        imageUrl,
+        mediaItems,
+      } satisfies PortalProductVariant;
     })
-    .filter((item): item is ProductVariant => item !== null);
+    .filter((item): item is PortalProductVariant => item !== null);
   return variants.length > 0 ? variants : undefined;
 }
 

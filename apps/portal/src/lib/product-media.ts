@@ -1,8 +1,9 @@
 import type {
+  PortalFeaturedProduct,
+  PortalProductVariant,
+  PortalStoreProduct,
   ProductMediaItem,
   ProductMediaKind,
-  PortalFeaturedProduct,
-  PortalStoreProduct,
 } from "@emperatriz/types";
 
 const VIDEO_URL_PATTERN = /\.(mp4|webm)(\?.*)?$/i;
@@ -33,4 +34,32 @@ export function productGalleryMedia(
     url,
     kind: inferMediaKind(url),
   }));
+}
+
+export function variantGalleryMedia(
+  variant: Pick<PortalProductVariant, "mediaItems" | "imageUrl"> | null | undefined,
+  product: Pick<PortalFeaturedProduct | PortalStoreProduct, "mediaItems" | "imageUrls" | "imageUrl">,
+): ProductMediaItem[] {
+  if (variant?.mediaItems?.length) {
+    return variant.mediaItems.map((item) => ({
+      url: item.url,
+      kind: inferMediaKind(item.url, item.kind),
+    }));
+  }
+
+  if (variant?.imageUrl) {
+    return [{ url: variant.imageUrl, kind: inferMediaKind(variant.imageUrl) }];
+  }
+
+  return productGalleryMedia(product);
+}
+
+export function variantCoverImageUrl(
+  variant: Pick<PortalProductVariant, "mediaItems" | "imageUrl"> | null | undefined,
+  product: Pick<PortalFeaturedProduct | PortalStoreProduct, "imageUrl">,
+): string | null {
+  if (variant?.imageUrl) return variant.imageUrl;
+  const firstImage = variant?.mediaItems?.find((item) => inferMediaKind(item.url, item.kind) === "image");
+  if (firstImage) return firstImage.url;
+  return product.imageUrl;
 }

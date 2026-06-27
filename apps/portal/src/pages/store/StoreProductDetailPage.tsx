@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import type { PortalStoreProduct } from "@emperatriz/types";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
+import VariantPicker from "@/components/live/VariantPicker";
 import ProductMediaCarousel from "@/components/store/ProductMediaCarousel";
 import ValidationBanner from "@/components/cart/ValidationBanner";
 import { formatCurrency } from "@/lib/format";
@@ -11,9 +12,13 @@ import {
   fetchStoreProduct,
   storeProductToFeatured,
 } from "@/lib/portal-store";
-import { productGalleryMedia } from "@/lib/product-media";
+import { variantGalleryMedia } from "@/lib/product-media";
 import { productDiscountLineTotal } from "@/lib/sale-channels";
-import { normalizeProductVariants } from "@/lib/product-variants";
+import {
+  normalizeProductVariants,
+  resolveActiveVariant,
+  variantsNeedSelection,
+} from "@/lib/product-variants";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
 
@@ -30,6 +35,7 @@ export default function StoreProductDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!productId) return;
@@ -55,6 +61,10 @@ export default function StoreProductDetailPage() {
       cancelled = true;
     };
   }, [productId]);
+
+  useEffect(() => {
+    setSelectedVariantId(null);
+  }, [product?.productId]);
 
   const handlePayThreshold = () => {
     const due = privateSnapshot?.thresholdBlock?.depositDue ?? 0;
@@ -88,6 +98,26 @@ export default function StoreProductDetailPage() {
     }
   };
 
+  const featuredProduct = useMemo(
+    () => (product ? storeProductToFeatured(product) : null),
+    [product],
+  );
+
+  const variants = useMemo(
+    () => (featuredProduct ? normalizeProductVariants(featuredProduct) : []),
+    [featuredProduct],
+  );
+
+  const activeVariant = useMemo(
+    () => resolveActiveVariant(variants, selectedVariantId),
+    [variants, selectedVariantId],
+  );
+
+  const galleryMedia = useMemo(
+    () => (product ? variantGalleryMedia(activeVariant, product) : []),
+    [product, activeVariant],
+  );
+
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-neutral-500">
@@ -96,7 +126,7 @@ export default function StoreProductDetailPage() {
     );
   }
 
-  if (error || !product) {
+  if (error || !product || !featuredProduct) {
     return (
       <section className="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-800">
         {error ?? "Producto no disponible."}
@@ -111,7 +141,6 @@ export default function StoreProductDetailPage() {
 
   const hasProductDiscount = product.earlyPayDiscountPercent > 0;
   const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
-  const variants = normalizeProductVariants(storeProductToFeatured(product));
   const variantSummary = variants
     .filter((variant) => variant.stock > 0)
     .map((variant) =>
@@ -120,8 +149,6 @@ export default function StoreProductDetailPage() {
         : `${variant.color}${variant.size !== "No aplica" ? ` · ${variant.size}` : ""} (${variant.stock})`,
     )
     .join(" · ");
-
-  const galleryMedia = productGalleryMedia(product);
 
   return (
     <>
@@ -138,7 +165,16 @@ export default function StoreProductDetailPage() {
         </button>
 
         <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
-          <ProductMediaCarousel media={galleryMedia} productName={product.name} />
+          <div className="space-y-3 p-4 sm:p-5 lg:p-6">
+            {variantsNeedSelection(variants) ? (
+              <VariantPicker
+                variants={variants}
+                selectedVariantId={selectedVariantId}
+                onSelect={setSelectedVariantId}
+              />
+            ) : null}
+            <ProductMediaCarousel media={galleryMedia} productName={product.name} />
+          </div>
 
           <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
             <div className="flex flex-wrap items-center gap-2">
@@ -189,11 +225,12 @@ export default function StoreProductDetailPage() {
 
       <LiveAddToCartModal
         open={modalOpen}
-        product={storeProductToFeatured(product)}
+        product={featuredProduct}
         cartActive={canPurchase}
         blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
         thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
         submitting={submitting}
+        initialVariantId={selectedVariantId}
         onClose={() => setModalOpen(false)}
         onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
         onActivateCart={openCartModal}

@@ -1,4 +1,4 @@
-import type { ProductVariant } from "@emperatriz/types";
+import type { PortalProductVariant } from "@emperatriz/types";
 import {
   formatVariantLabel,
   VARIANT_NOT_APPLICABLE,
@@ -6,7 +6,7 @@ import {
 } from "@/lib/product-variants";
 
 interface VariantPickerProps {
-  variants: ProductVariant[];
+  variants: PortalProductVariant[];
   selectedVariantId: string | null;
   onSelect: (variantId: string) => void;
   disabled?: boolean;
