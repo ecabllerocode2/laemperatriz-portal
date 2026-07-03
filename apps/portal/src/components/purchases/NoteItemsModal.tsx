@@ -110,11 +110,20 @@ export default function NoteItemsModal({ note, onClose }: NoteItemsModalProps) {
                       <SaleOriginBadge origin={item.saleOrigin} />
                     </div>
                     <p className="text-xs text-neutral-500">
-                      {item.quantity} pz · {formatCurrency(item.unitPrice)} c/u
+                      {item.quantity} pz
+                      {item.isFreeReplacement ? (
+                        <> · Gratis · Reposición</>
+                      ) : (
+                        <> · {formatCurrency(item.unitPrice)} c/u</>
+                      )}
                     </p>
                   </div>
                   <p className="shrink-0 text-sm font-semibold text-brand-night">
-                    {formatCurrency(item.subtotal)}
+                    {item.isFreeReplacement ? (
+                      <span className="text-emerald-700">Gratis</span>
+                    ) : (
+                      formatCurrency(item.subtotal)
+                    )}
                   </p>
                 </li>
               );

@@ -38,10 +38,24 @@ export default function NoteCard({ note, index, onOpenItems, onPay }: NoteCardPr
         <div>
           <p className="text-xs font-medium text-neutral-400">Nota #{index + 1}</p>
           <NoteTotalBreakdown note={note} showDiscount={pending} className="mt-1" />
+          {note.hasFreeReplacement ? (
+            <p className="mt-2 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs text-sky-900">
+              <span className="font-semibold">Nota de salida</span>
+              {" · "}
+              Incluye una pieza de reposición sin costo
+            </p>
+          ) : null}
         </div>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
-          {badge.text}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
+            {badge.text}
+          </span>
+          {note.hasFreeReplacement ? (
+            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
+              Nota de salida
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {note.earlyPayEligible && pending && !note.earlyPayTimerStarted ? (

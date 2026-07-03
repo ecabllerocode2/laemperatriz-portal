@@ -192,6 +192,12 @@ export interface SaleNoteItem {
   productDiscountPercent?: number;
   /** @deprecated Usar productDiscountPercent. Se conserva en notas legacy. */
   earlyPayDiscountPercent?: number;
+  /** true cuando esta pieza se reenvía sin costo por un defecto reportado. */
+  isFreeReplacement?: boolean;
+  /** Motivo capturado por staff al reportar el defecto. */
+  replacementReason?: string;
+  /** Referencia a la compra original con el defecto, para trazabilidad. */
+  replacementSource?: { cycleId: string; noteId: string; lineId?: string };
 }
 
 /**
@@ -500,6 +506,8 @@ export interface PortalSaleNote {
   earlyPayEligibleSubtotal?: number;
   /** true cuando el descuento de pronto pago está activo ahora mismo. */
   earlyPayActive?: boolean;
+  /** true si items incluye al menos una pieza de reposición sin costo. */
+  hasFreeReplacement?: boolean;
 }
 
 /** Aviso de liquidación (notas o envío) en el portal. */
