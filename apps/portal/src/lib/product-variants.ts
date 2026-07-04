@@ -36,6 +36,13 @@ export function formatVariantLabel(variant: Pick<PortalProductVariant, "color" |
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
+export function formatVariantDisplayLabel(
+  variant: Pick<PortalProductVariant, "color" | "size">,
+  index = 0,
+): string {
+  return formatVariantLabel(variant) ?? `Variante ${index + 1}`;
+}
+
 export function resolveAutoVariantId(variants: PortalProductVariant[]): string | null {
   const available = variantsAvailableForSale(variants);
   if (available.length !== 1) return null;

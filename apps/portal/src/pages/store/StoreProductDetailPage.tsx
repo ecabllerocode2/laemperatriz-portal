@@ -16,6 +16,7 @@ import {
 import { variantGalleryMedia } from "@/lib/product-media";
 import { productDiscountLineTotal } from "@/lib/sale-channels";
 import {
+  formatVariantDisplayLabel,
   normalizeProductVariants,
   resolveActiveVariant,
   variantsNeedSelection,
@@ -161,11 +162,7 @@ export default function StoreProductDetailPage() {
   const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const variantSummary = variants
     .filter((variant) => variant.stock > 0)
-    .map((variant) =>
-      variant.color === "No aplica" && variant.size === "No aplica"
-        ? `${variant.stock} pzs`
-        : `${variant.color}${variant.size !== "No aplica" ? ` · ${variant.size}` : ""} (${variant.stock})`,
-    )
+    .map((variant, index) => `${formatVariantDisplayLabel(variant, index)} (${variant.stock})`)
     .join(" · ");
 
   return (

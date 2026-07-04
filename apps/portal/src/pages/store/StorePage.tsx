@@ -26,10 +26,6 @@ export default function StorePage() {
   const liveActive = Boolean(session?.id);
 
   const handleLiveAccess = () => {
-    if (isGuest) {
-      navigate(loginPathWithReturn("/live"));
-      return;
-    }
     navigate("/live");
   };
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, Radio, RefreshCw } from "lucide-react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import FacebookLiveEmbed from "@/components/live/FacebookLiveEmbed";
 import LiveSoundHint from "@/components/live/LiveSoundHint";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
@@ -19,6 +19,7 @@ import type { PortalFeaturedProduct } from "@emperatriz/types";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useUiStore } from "@/stores/ui.store";
 import { markPortalToastSeen } from "@/lib/portal-toast";
+import { loginPathWithReturn } from "@/lib/auth-redirect";
 
 interface PortalContext extends PortalOutletContext {}
 
@@ -44,7 +45,9 @@ function mergeShownProducts(
 }
 
 export default function LivePage() {
-  const { profile, canPurchase, depositStatus, privateSnapshot } = useOutletContext<PortalContext>();
+  const navigate = useNavigate();
+  const { profile, canPurchase, depositStatus, privateSnapshot, isGuest } =
+    useOutletContext<PortalContext>();
   const { openCartModal, openReceiptModal, setToast, bumpProfileReload } = useUiStore();
   const cartActive = canPurchase;
   const [dismissedToastId, setDismissedToastId] = useState<string | null>(null);
@@ -80,8 +83,16 @@ export default function LivePage() {
   };
 
   const openProductModal = (product: PortalFeaturedProduct) => {
+    if (isGuest) {
+      navigate(loginPathWithReturn("/live"));
+      return;
+    }
     setSelectedProduct(product);
     setModalOpen(true);
+  };
+
+  const handleGuestLogin = () => {
+    navigate(loginPathWithReturn("/live"));
   };
 
   const handleConfirmOrder = async (
@@ -160,9 +171,9 @@ export default function LivePage() {
       <div className="fixed inset-0 z-10 flex flex-col bg-black lg:hidden">
         <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 pb-8 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
-            to="/compras"
+            to={isGuest ? "/" : "/compras"}
             className="flex size-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-            aria-label="Volver a mis compras"
+            aria-label={isGuest ? "Volver a la tienda" : "Volver a mis compras"}
           >
             <ArrowLeft className="size-4" />
           </Link>
@@ -200,6 +211,8 @@ export default function LivePage() {
           }}
           onActivateCart={openCartModal}
           onPayThreshold={handlePayThreshold}
+          isGuest={isGuest}
+          onLogin={handleGuestLogin}
           variant="overlay"
         />
 
@@ -299,6 +312,8 @@ export default function LivePage() {
           }}
           onActivateCart={openCartModal}
           onPayThreshold={handlePayThreshold}
+          isGuest={isGuest}
+          onLogin={handleGuestLogin}
           variant="inline"
         />
 
@@ -337,10 +352,10 @@ export default function LivePage() {
                 Ver en Facebook
               </a>
               <Link
-                to="/compras"
+                to={isGuest ? "/" : "/compras"}
                 className="inline-flex items-center gap-2 rounded-full bg-brand-night px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-night/90"
               >
-                Ir a mis compras
+                {isGuest ? "Ir a la tienda" : "Ir a mis compras"}
               </Link>
             </div>
           </div>

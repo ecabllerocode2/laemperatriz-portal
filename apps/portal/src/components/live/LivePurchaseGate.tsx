@@ -17,6 +17,8 @@ interface LivePurchaseGateProps {
   onDismissToast: () => void;
   onActivateCart: () => void;
   onPayThreshold?: () => void;
+  onLogin?: () => void;
+  isGuest?: boolean;
   variant?: "overlay" | "inline";
 }
 
@@ -30,13 +32,18 @@ export default function LivePurchaseGate({
   onDismissToast,
   onActivateCart,
   onPayThreshold,
+  onLogin,
+  isGuest = false,
   variant = "overlay",
 }: LivePurchaseGateProps) {
   const showToast =
+    !isGuest &&
     toast &&
     toast.id !== dismissedToastId &&
     shouldShowPortalToast(toast, { depositStatus, canPurchase });
-  const bannerText = livePurchaseBlockMessage(blockReason, thresholdBlock ?? undefined);
+  const bannerText = isGuest
+    ? "Inicia sesión para apartar piezas en el live."
+    : livePurchaseBlockMessage(blockReason, thresholdBlock ?? undefined);
 
   if (canPurchase && !showToast) return null;
 
@@ -44,7 +51,7 @@ export default function LivePurchaseGate({
     blockReason === "threshold_block" ? onPayThreshold ?? onActivateCart : onActivateCart;
   const payLabel = blockReason === "threshold_block" ? "Subir comprobante" : "Activar carrito";
 
-  const banner = !canPurchase && bannerText ? (
+  const banner = (isGuest || !canPurchase) && bannerText ? (
     <div
       className={
         variant === "overlay"
@@ -53,10 +60,18 @@ export default function LivePurchaseGate({
       }
     >
       {bannerText}{" "}
-      {blockReason === "cart_opening_required" ||
-      blockReason === "cycle_completed" ||
-      blockReason === "cycle_closed" ||
-      blockReason === "threshold_block" ? (
+      {isGuest && onLogin ? (
+        <button
+          type="button"
+          onClick={onLogin}
+          className="font-semibold underline underline-offset-2"
+        >
+          Iniciar sesión
+        </button>
+      ) : blockReason === "cart_opening_required" ||
+        blockReason === "cycle_completed" ||
+        blockReason === "cycle_closed" ||
+        blockReason === "threshold_block" ? (
         <button
           type="button"
           onClick={payAction}

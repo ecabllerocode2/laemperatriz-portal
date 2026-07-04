@@ -55,7 +55,7 @@ export default function PortalLayout() {
   const { pathname } = useLocation();
   const isLivePage = pathname === "/live";
   const isStorePage = pathname === "/" || pathname.startsWith("/tienda/");
-  const isPublicStoreRoute = isStorePage;
+  const isPublicBrowseRoute = isStorePage || isLivePage;
 
   const depositStatus =
     (privateSnapshot?.depositStatus as DepositStatus | undefined) ??
@@ -85,10 +85,10 @@ export default function PortalLayout() {
 
   useEffect(() => {
     if (isLoading || !user) return;
-    if (!profile && !isPublicStoreRoute) {
+    if (!profile && !isPublicBrowseRoute) {
       navigate(completarRegistroPathWithReturn(pathname), { replace: true });
     }
-  }, [isLoading, user, profile, navigate, pathname, isPublicStoreRoute]);
+  }, [isLoading, user, profile, navigate, pathname, isPublicBrowseRoute]);
 
   useEffect(() => {
     if (depositStatus === "pending" || depositStatus === "approved") {

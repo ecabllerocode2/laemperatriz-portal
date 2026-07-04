@@ -53,11 +53,11 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <StorePage /> },
       { path: "tienda/:productId", element: <StoreProductDetailPage /> },
+      { path: "live", element: <LivePage /> },
       {
         element: <ProtectedRoute />,
         children: [
           { path: "compras", element: <PurchasesPage /> },
-          { path: "live", element: <LivePage /> },
           { path: "envios", element: <ShippingPage /> },
           { path: "pagos", element: <PaymentsPage /> },
           { path: "perfil", element: <ProfilePage /> },

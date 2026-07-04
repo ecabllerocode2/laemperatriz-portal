@@ -1,7 +1,6 @@
 import type { PortalProductVariant } from "@emperatriz/types";
 import {
-  formatVariantLabel,
-  VARIANT_NOT_APPLICABLE,
+  formatVariantDisplayLabel,
   variantsNeedSelection,
 } from "@/lib/product-variants";
 
@@ -27,10 +26,8 @@ export default function VariantPicker({
         Elige variante (color y talla)
       </span>
       <div className="flex flex-wrap gap-2">
-        {available.map((variant) => {
-          const label =
-            formatVariantLabel(variant) ??
-            `${variant.color}${variant.size !== VARIANT_NOT_APPLICABLE ? ` · ${variant.size}` : ""}`;
+        {available.map((variant, index) => {
+          const label = formatVariantDisplayLabel(variant, index);
           const selected = selectedVariantId === variant.id;
           return (
             <button

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { get, onValue, ref } from "firebase/database";
 import type { PortalFeaturedProduct, PortalLiveSession } from "@emperatriz/types";
-import { fetchPortalLive, fetchPortalLiveStatus } from "@/lib/portal-live";
+import { fetchPortalLive } from "@/lib/portal-live";
 import { auth, rtdb } from "@/lib/firebase";
 import {
   LIVE_PUBLIC_RTD_PATH,
@@ -91,22 +91,37 @@ export function usePortalLive(enabled = true) {
       if (cancelled) return;
 
       if (!user) {
-        void fetchPortalLiveStatus()
-          .then((status) => {
+        const nodeRef = ref(rtdb, LIVE_PUBLIC_RTD_PATH);
+        rtdbUnsub = onValue(
+          nodeRef,
+          (snap) => {
             if (cancelled) return;
-            if (status.active) {
-              setSession({ id: "public", name: "Live", startedAt: null, facebookVideoUrl: null, embedUrl: null, featuredProduct: null, featuredHistory: [] });
-            } else {
-              applySnapshot(null);
+            const hasSession = snapshotHasActiveSession(snap.val());
+            if (hasSession) {
+              applySnapshot(snap.val());
+              setLoading(false);
+              setError(null);
+              return;
             }
-            setError(null);
-          })
-          .catch(() => {
-            if (!cancelled) applySnapshot(null);
-          })
-          .finally(() => {
-            if (!cancelled) setLoading(false);
-          });
+
+            if (!apiFallbackAttemptedRef.current) {
+              apiFallbackAttemptedRef.current = true;
+              void loadFromApi().finally(() => {
+                if (!cancelled) setLoading(false);
+              });
+              return;
+            }
+
+            applySnapshot(snap.val());
+            setLoading(false);
+          },
+          () => {
+            if (cancelled) return;
+            void loadFromApi().finally(() => {
+              if (!cancelled) setLoading(false);
+            });
+          },
+        );
         return;
       }
 
@@ -162,12 +177,10 @@ export function usePortalLive(enabled = true) {
     setRefreshing(true);
     setError(null);
     try {
-      if (auth.currentUser) {
-        const snap = await get(ref(rtdb, LIVE_PUBLIC_RTD_PATH));
-        if (snap.exists() && snapshotHasActiveSession(snap.val())) {
-          applySnapshot(snap.val());
-          return;
-        }
+      const snap = await get(ref(rtdb, LIVE_PUBLIC_RTD_PATH));
+      if (snap.exists() && snapshotHasActiveSession(snap.val())) {
+        applySnapshot(snap.val());
+        return;
       }
 
       await loadFromApi();
