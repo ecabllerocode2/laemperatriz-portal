@@ -1,8 +1,10 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { resolveReturnTo } from "@/lib/auth-redirect";
 import { useAuthStore } from "@/stores/auth.store";
 
 export default function GuestRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
+  const [searchParams] = useSearchParams();
 
   if (isLoading) {
     return (
@@ -13,7 +15,7 @@ export default function GuestRoute({ children }: { children: React.ReactNode }) 
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={resolveReturnTo(searchParams)} replace />;
   }
 
   return children;

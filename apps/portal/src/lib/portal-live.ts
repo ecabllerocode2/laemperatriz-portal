@@ -1,6 +1,10 @@
 import type { PortalLiveOrderResult, PortalLiveResponse } from "@emperatriz/types";
 import { apiRequest } from "@/lib/api";
 
+export async function fetchPortalLiveStatus(): Promise<{ active: boolean }> {
+  return apiRequest<{ active: boolean }>("/api/portal/live/status");
+}
+
 export async function fetchPortalLive(): Promise<PortalLiveResponse> {
   return apiRequest<PortalLiveResponse>("/api/portal/live");
 }

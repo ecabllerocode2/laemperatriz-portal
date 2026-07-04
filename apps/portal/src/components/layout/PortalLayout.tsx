@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import type { PortalPrivateSnapshot } from "@emperatriz/types";
 import type { DepositStatus, PortalProfileDoc } from "@/types/portal-profile";
+import { completarRegistroPathWithReturn } from "@/lib/auth-redirect";
 import { markPortalToastSeen, shouldShowPortalToast } from "@/lib/portal-toast";
 
 export interface PortalOutletContext {
@@ -23,6 +24,7 @@ export interface PortalOutletContext {
   depositStatus: DepositStatus;
   canPurchase: boolean;
   privateSnapshot: PortalPrivateSnapshot | null;
+  isGuest: boolean;
 }
 
 function firstNameFrom(fullName: string): string {
@@ -31,6 +33,7 @@ function firstNameFrom(fullName: string): string {
 
 export default function PortalLayout() {
   const { user } = useAuthStore();
+  const isGuest = !user;
   const { profile, isLoading } = usePortalProfile(user?.uid);
   const {
     snapshot: privateSnapshot,
@@ -52,6 +55,7 @@ export default function PortalLayout() {
   const { pathname } = useLocation();
   const isLivePage = pathname === "/live";
   const isStorePage = pathname === "/" || pathname.startsWith("/tienda/");
+  const isPublicStoreRoute = isStorePage;
 
   const depositStatus =
     (privateSnapshot?.depositStatus as DepositStatus | undefined) ??
@@ -81,10 +85,10 @@ export default function PortalLayout() {
 
   useEffect(() => {
     if (isLoading || !user) return;
-    if (!profile) {
-      navigate("/completar-registro", { replace: true });
+    if (!profile && !isPublicStoreRoute) {
+      navigate(completarRegistroPathWithReturn(pathname), { replace: true });
     }
-  }, [isLoading, user, profile, navigate]);
+  }, [isLoading, user, profile, navigate, pathname, isPublicStoreRoute]);
 
   useEffect(() => {
     if (depositStatus === "pending" || depositStatus === "approved") {
@@ -197,6 +201,7 @@ export default function PortalLayout() {
       <div className={isLivePage ? "max-lg:hidden" : undefined}>
         <PortalHeader
           firstName={firstNameFrom(displayName)}
+          isGuest={isGuest}
           shellVariant={isLivePage ? "live" : isStorePage ? "store" : "default"}
         />
       </div>
@@ -215,34 +220,39 @@ export default function PortalLayout() {
             depositStatus,
             canPurchase,
             privateSnapshot,
+            isGuest,
           } satisfies PortalOutletContext}
         />
       </main>
       <div className={isLivePage ? "max-lg:hidden" : undefined}>
-        <BottomNav />
+        <BottomNav isGuest={isGuest} />
       </div>
-      <CartActivationModal />
-      <ReceiptUploadModal />
-      <ShippingAddressModal
-        open={showAddressModal}
-        required={addressRequired}
-        defaultPostalCode={profile?.postalCode ?? ""}
-        initial={shippingAddressDetail ?? null}
-        onClose={() => closeShippingAddressModal()}
-        onSaved={() => {
-          closeShippingAddressModal();
-          void reloadCycle();
-        }}
-      />
-      <PwaInstallModal
-        open={showPwaInstall}
-        isIos={isIos}
-        isAndroid={isAndroid}
-        canNativeInstall={canNativeInstall}
-        onInstall={install}
-        onDismiss={dismiss}
-        onClose={() => setShowPwaInstall(false)}
-      />
+      {user ? (
+        <>
+          <CartActivationModal />
+          <ReceiptUploadModal />
+          <ShippingAddressModal
+            open={showAddressModal}
+            required={addressRequired}
+            defaultPostalCode={profile?.postalCode ?? ""}
+            initial={shippingAddressDetail ?? null}
+            onClose={() => closeShippingAddressModal()}
+            onSaved={() => {
+              closeShippingAddressModal();
+              void reloadCycle();
+            }}
+          />
+          <PwaInstallModal
+            open={showPwaInstall}
+            isIos={isIos}
+            isAndroid={isAndroid}
+            canNativeInstall={canNativeInstall}
+            onInstall={install}
+            onDismiss={dismiss}
+            onClose={() => setShowPwaInstall(false)}
+          />
+        </>
+      ) : null}
       <Toast />
     </div>
   );

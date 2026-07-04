@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import type { PortalStoreProduct } from "@emperatriz/types";
 import LiveAddToCartModal from "@/components/live/LiveAddToCartModal";
 import VariantPicker from "@/components/live/VariantPicker";
 import ProductMediaCarousel from "@/components/store/ProductMediaCarousel";
 import ValidationBanner from "@/components/cart/ValidationBanner";
+import { completarRegistroPathWithReturn, loginPathWithReturn } from "@/lib/auth-redirect";
 import { formatCurrency } from "@/lib/format";
 import {
   createPortalStoreOrder,
@@ -20,6 +21,7 @@ import {
   variantsNeedSelection,
 } from "@/lib/product-variants";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
+import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 
 interface PortalContext extends PortalOutletContext {}
@@ -27,7 +29,10 @@ interface PortalContext extends PortalOutletContext {}
 export default function StoreProductDetailPage() {
   const { productId = "" } = useParams();
   const navigate = useNavigate();
-  const { depositStatus, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
+  const location = useLocation();
+  const { user } = useAuthStore();
+  const isGuest = !user;
+  const { profile, depositStatus, canPurchase, privateSnapshot } = useOutletContext<PortalContext>();
   const { openCartModal, openReceiptModal, setToast, bumpProfileReload } = useUiStore();
 
   const [product, setProduct] = useState<PortalStoreProduct | null>(null);
@@ -70,6 +75,19 @@ export default function StoreProductDetailPage() {
     const due = privateSnapshot?.thresholdBlock?.depositDue ?? 0;
     if (due <= 0) return;
     openReceiptModal({ purpose: "notes", amount: due });
+  };
+
+  const handleApartarClick = () => {
+    const returnPath = `${location.pathname}${location.search}`;
+    if (isGuest) {
+      navigate(loginPathWithReturn(returnPath));
+      return;
+    }
+    if (!profile) {
+      navigate(completarRegistroPathWithReturn(returnPath));
+      return;
+    }
+    setModalOpen(true);
   };
 
   const handleConfirmOrder = async (
@@ -153,7 +171,7 @@ export default function StoreProductDetailPage() {
   return (
     <>
       <div className="space-y-5">
-        {depositStatus === "pending" ? <ValidationBanner /> : null}
+        {!isGuest && depositStatus === "pending" ? <ValidationBanner /> : null}
 
         <button
           type="button"
@@ -214,28 +232,30 @@ export default function StoreProductDetailPage() {
             <button
               type="button"
               disabled={product.stock < 1}
-              onClick={() => setModalOpen(true)}
+              onClick={handleApartarClick}
               className="w-full rounded-xl bg-brand-red px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-md lg:text-base"
             >
-              {product.stock < 1 ? "Agotado" : "Apartar pieza"}
+              {product.stock < 1 ? "Agotado" : isGuest ? "Apartar pieza (requiere cuenta)" : "Apartar pieza"}
             </button>
           </div>
         </div>
       </div>
 
-      <LiveAddToCartModal
-        open={modalOpen}
-        product={featuredProduct}
-        cartActive={canPurchase}
-        blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
-        thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
-        submitting={submitting}
-        initialVariantId={selectedVariantId}
-        onClose={() => setModalOpen(false)}
-        onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
-        onActivateCart={openCartModal}
-        onPayThreshold={handlePayThreshold}
-      />
+      {!isGuest && profile ? (
+        <LiveAddToCartModal
+          open={modalOpen}
+          product={featuredProduct}
+          cartActive={canPurchase}
+          blockReason={privateSnapshot?.blockReason ?? "cart_opening_required"}
+          thresholdBlock={privateSnapshot?.thresholdBlock ?? null}
+          submitting={submitting}
+          initialVariantId={selectedVariantId}
+          onClose={() => setModalOpen(false)}
+          onConfirm={(quantity, variant) => void handleConfirmOrder(quantity, variant)}
+          onActivateCart={openCartModal}
+          onPayThreshold={handlePayThreshold}
+        />
+      ) : null}
     </>
   );
 }

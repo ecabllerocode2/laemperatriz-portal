@@ -9,17 +9,29 @@ import { usePortalStoreCatalog } from "@/hooks/usePortalStoreCatalog";
 import { usePortalStoreCategories } from "@/hooks/usePortalStoreCategories";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { formatCurrency } from "@/lib/format";
+import { loginPathWithReturn, registerPathWithReturn } from "@/lib/auth-redirect";
 import type { PortalOutletContext } from "@/components/layout/PortalLayout";
+import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 
 interface PortalContext extends PortalOutletContext {}
 
 export default function StorePage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isGuest = !user;
   const { depositStatus, privateSnapshot } = useOutletContext<PortalContext>();
   const { openReceiptModal } = useUiStore();
   const { session, loading: liveLoading } = usePortalLive(true);
   const liveActive = Boolean(session?.id);
+
+  const handleLiveAccess = () => {
+    if (isGuest) {
+      navigate(loginPathWithReturn("/live"));
+      return;
+    }
+    navigate("/live");
+  };
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -69,9 +81,9 @@ export default function StorePage() {
   return (
     <>
       <div className="space-y-5">
-        {depositStatus === "pending" ? <ValidationBanner /> : null}
+        {!isGuest && depositStatus === "pending" ? <ValidationBanner /> : null}
 
-        {privateSnapshot?.thresholdBlock?.active ? (
+        {!isGuest && privateSnapshot?.thresholdBlock?.active ? (
           <section className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
             <p>
               Has pedido {formatCurrency(privateSnapshot.thresholdBlock.orderedTotal)}. Para seguir
@@ -109,7 +121,7 @@ export default function StorePage() {
             {liveActive ? (
               <button
                 type="button"
-                onClick={() => navigate("/live")}
+                onClick={handleLiveAccess}
                 className="live-pulse-cta mt-5 inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-red/30 lg:mt-0 lg:px-6 lg:py-3.5 lg:text-base"
               >
                 <span className="relative flex size-2.5" aria-hidden>
@@ -240,11 +252,36 @@ export default function StorePage() {
 
         <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-600">
           <p>
-            ¿Ya apartaste piezas? Revisa tus notas y pagos en{" "}
-            <Link to="/compras" className="font-semibold text-brand-red underline-offset-2 hover:underline">
-              Mis compras
-            </Link>
-            .
+            {isGuest ? (
+              <>
+                Para apartar piezas necesitas una cuenta.{" "}
+                <Link
+                  to={loginPathWithReturn("/")}
+                  className="font-semibold text-brand-red underline-offset-2 hover:underline"
+                >
+                  Inicia sesión
+                </Link>{" "}
+                o{" "}
+                <Link
+                  to={registerPathWithReturn("/")}
+                  className="font-semibold text-brand-red underline-offset-2 hover:underline"
+                >
+                  regístrate
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                ¿Ya apartaste piezas? Revisa tus notas y pagos en{" "}
+                <Link
+                  to="/compras"
+                  className="font-semibold text-brand-red underline-offset-2 hover:underline"
+                >
+                  Mis compras
+                </Link>
+                .
+              </>
+            )}
           </p>
         </section>
       </div>

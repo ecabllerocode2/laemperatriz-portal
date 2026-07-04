@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { get, onValue, ref } from "firebase/database";
 import type { PortalFeaturedProduct, PortalLiveSession } from "@emperatriz/types";
-import { fetchPortalLive } from "@/lib/portal-live";
+import { fetchPortalLive, fetchPortalLiveStatus } from "@/lib/portal-live";
 import { auth, rtdb } from "@/lib/firebase";
 import {
   LIVE_PUBLIC_RTD_PATH,
@@ -16,6 +16,11 @@ function isPermissionDenied(err: unknown): boolean {
   return code === "PERMISSION_DENIED" || code === "permission_denied";
 }
 
+function snapshotHasActiveSession(raw: unknown): boolean {
+  const parsed = parseLivePublicSnapshot(raw);
+  return Boolean(parsed?.sessionId);
+}
+
 /** Estado del live vía RTDB push — sin polling Firestore. */
 export function usePortalLive(enabled = true) {
   const [session, setSession] = useState<PortalLiveSession | null>(null);
@@ -25,6 +30,7 @@ export function usePortalLive(enabled = true) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const apiFallbackAttemptedRef = useRef(false);
 
   const applySnapshot = useCallback((raw: unknown) => {
     const parsed = parseLivePublicSnapshot(raw);
@@ -33,7 +39,7 @@ export function usePortalLive(enabled = true) {
       setFeaturedProduct(null);
       setFeaturedHistory([]);
       setVersion(0);
-      return;
+      return false;
     }
 
     const portalSession = livePublicSnapshotToPortalSession(parsed);
@@ -41,6 +47,7 @@ export function usePortalLive(enabled = true) {
     setFeaturedProduct(parsed.featuredProduct);
     setFeaturedHistory(parsed.featuredHistory);
     setVersion(parsed.version);
+    return true;
   }, []);
 
   const loadFromApi = useCallback(async (): Promise<boolean> => {
@@ -72,6 +79,7 @@ export function usePortalLive(enabled = true) {
 
     setLoading(true);
     setError(null);
+    apiFallbackAttemptedRef.current = false;
 
     let rtdbUnsub: (() => void) | undefined;
     let cancelled = false;
@@ -83,7 +91,22 @@ export function usePortalLive(enabled = true) {
       if (cancelled) return;
 
       if (!user) {
-        setLoading(false);
+        void fetchPortalLiveStatus()
+          .then((status) => {
+            if (cancelled) return;
+            if (status.active) {
+              setSession({ id: "public", name: "Live", startedAt: null, facebookVideoUrl: null, embedUrl: null, featuredProduct: null, featuredHistory: [] });
+            } else {
+              applySnapshot(null);
+            }
+            setError(null);
+          })
+          .catch(() => {
+            if (!cancelled) applySnapshot(null);
+          })
+          .finally(() => {
+            if (!cancelled) setLoading(false);
+          });
         return;
       }
 
@@ -92,9 +115,24 @@ export function usePortalLive(enabled = true) {
         nodeRef,
         (snap) => {
           if (cancelled) return;
+          const hasSession = snapshotHasActiveSession(snap.val());
+          if (hasSession) {
+            applySnapshot(snap.val());
+            setLoading(false);
+            setError(null);
+            return;
+          }
+
+          if (!apiFallbackAttemptedRef.current) {
+            apiFallbackAttemptedRef.current = true;
+            void loadFromApi().finally(() => {
+              if (!cancelled) setLoading(false);
+            });
+            return;
+          }
+
           applySnapshot(snap.val());
           setLoading(false);
-          setError(null);
         },
         (err) => {
           if (cancelled) return;
@@ -126,7 +164,7 @@ export function usePortalLive(enabled = true) {
     try {
       if (auth.currentUser) {
         const snap = await get(ref(rtdb, LIVE_PUBLIC_RTD_PATH));
-        if (snap.exists()) {
+        if (snap.exists() && snapshotHasActiveSession(snap.val())) {
           applySnapshot(snap.val());
           return;
         }

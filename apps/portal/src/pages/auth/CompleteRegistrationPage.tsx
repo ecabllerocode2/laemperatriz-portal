@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
 import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
+import { resolveReturnTo } from "@/lib/auth-redirect";
 import { linkPortalCustomer } from "@/lib/portal-customer";
 import {
   portalRegistrationFieldsSchema,
@@ -16,6 +17,8 @@ export default function CompleteRegistrationPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = resolveReturnTo(searchParams);
 
   const {
     register,
@@ -32,7 +35,7 @@ export default function CompleteRegistrationPage() {
     setServerError(null);
     try {
       await linkPortalCustomer(data);
-      navigate("/", { replace: true });
+      navigate(returnTo, { replace: true });
     } catch {
       setServerError("No pudimos guardar tus datos. Intenta de nuevo.");
     }

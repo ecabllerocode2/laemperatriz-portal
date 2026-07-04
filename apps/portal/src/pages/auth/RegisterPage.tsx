@@ -8,6 +8,7 @@ import AuthInput from "@/components/auth/AuthInput";
 import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { auth } from "@/lib/firebase";
 import { linkPortalCustomer } from "@/lib/portal-customer";
+import { loginPathWithReturn, resolveReturnTo } from "@/lib/auth-redirect";
 import {
   portalRegisterAccountSchema,
   type PortalRegisterAccountForm,
@@ -20,10 +21,11 @@ export default function RegisterPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const emailFromQuery = searchParams.get("email") ?? "";
+  const returnTo = resolveReturnTo(searchParams);
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(returnTo, { replace: true });
+  }, [user, navigate, returnTo]);
 
   const {
     register,
@@ -184,8 +186,8 @@ export default function RegisterPage() {
         </form>
 
         <p className="mt-5 text-center">
-          <Link to="/login" className="text-sm font-medium text-sky-600 hover:underline">
-            Volver al inicio
+          <Link to={loginPathWithReturn(returnTo)} className="text-sm font-medium text-sky-600 hover:underline">
+            Volver al inicio de sesión
           </Link>
         </p>
       </div>

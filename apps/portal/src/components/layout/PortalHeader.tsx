@@ -1,6 +1,8 @@
-import { Facebook, LogOut, MessageCircle, ShoppingBag } from "lucide-react";
+import { Facebook, LogIn, LogOut, MessageCircle, ShoppingBag, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import NotificationsBell from "@/components/layout/NotificationsBell";
+import { loginPathWithReturn, registerPathWithReturn } from "@/lib/auth-redirect";
 import { auth } from "@/lib/firebase";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { useAuthStore } from "@/stores/auth.store";
@@ -9,6 +11,7 @@ export type PortalShellVariant = "default" | "store" | "live";
 
 interface PortalHeaderProps {
   firstName: string;
+  isGuest?: boolean;
   notificationsEnabled?: boolean;
   shellVariant?: PortalShellVariant;
 }
@@ -21,10 +24,12 @@ function shellClassName(variant: PortalShellVariant): string {
 
 export default function PortalHeader({
   firstName,
+  isGuest = false,
   notificationsEnabled = true,
   shellVariant = "default",
 }: PortalHeaderProps) {
   const { clearAuth } = useAuthStore();
+  const returnTo = typeof window !== "undefined" ? window.location.pathname : "/";
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -41,7 +46,7 @@ export default function PortalHeader({
         />
 
         <p className="min-w-0 flex-1 truncate text-center text-xs font-medium text-brand-night sm:text-sm">
-          ¡Bienvenido! {firstName}
+          {isGuest ? "Explora la tienda" : `¡Bienvenido! ${firstName}`}
         </p>
 
         <div className="flex shrink-0 items-center">
@@ -63,22 +68,43 @@ export default function PortalHeader({
           >
             <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           </a>
-          <NotificationsBell enabled={notificationsEnabled} />
-          <button
-            type="button"
-            className="hidden h-9 w-9 items-center justify-center rounded-full text-brand-night hover:bg-neutral-50 sm:flex sm:h-10 sm:w-10"
-            aria-label="Carrito"
-          >
-            <ShoppingBag className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-50 sm:h-10 sm:w-10"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
+          {isGuest ? (
+            <>
+              <Link
+                to={loginPathWithReturn(returnTo)}
+                className="flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-brand-night hover:bg-neutral-50 sm:h-10 sm:px-3 sm:text-sm"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Entrar</span>
+              </Link>
+              <Link
+                to={registerPathWithReturn(returnTo)}
+                className="flex h-9 items-center gap-1 rounded-full bg-brand-red px-2.5 text-xs font-semibold text-white hover:bg-brand-red-dark sm:h-10 sm:px-3 sm:text-sm"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Registro</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <NotificationsBell enabled={notificationsEnabled} />
+              <button
+                type="button"
+                className="hidden h-9 w-9 items-center justify-center rounded-full text-brand-night hover:bg-neutral-50 sm:flex sm:h-10 sm:w-10"
+                aria-label="Carrito"
+              >
+                <ShoppingBag className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-50 sm:h-10 sm:w-10"
+                aria-label="Cerrar sesión"
+              >
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { resolveReturnTo } from "@/lib/auth-redirect";
 import { useAuthStore } from "@/stores/auth.store";
 
 const loginSchema = z.object({
@@ -18,10 +19,12 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = resolveReturnTo(searchParams);
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(returnTo, { replace: true });
+  }, [user, navigate, returnTo]);
 
   const {
     register,
@@ -31,6 +34,11 @@ export default function LoginPage() {
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const email = watch("email");
+  const registerHref = (() => {
+    const params = new URLSearchParams({ returnTo });
+    if (email) params.set("email", email);
+    return `/register?${params.toString()}`;
+  })();
 
   const onSubmit = async (data: LoginForm) => {
     setServerError(null);
@@ -123,7 +131,7 @@ export default function LoginPage() {
         <p className="mt-5 text-center text-sm text-neutral-600">
           ¿No tienes cuenta?{" "}
           <Link
-            to={email ? `/register?email=${encodeURIComponent(email)}` : "/register"}
+            to={registerHref}
             className="font-medium text-sky-600 hover:underline"
           >
             Regístrate

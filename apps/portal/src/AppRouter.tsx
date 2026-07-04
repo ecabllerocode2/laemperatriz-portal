@@ -46,11 +46,16 @@ const router = createBrowserRouter([
         path: "/completar-registro",
         element: <CompleteRegistrationPage />,
       },
+    ],
+  },
+  {
+    element: <PortalLayout />,
+    children: [
+      { index: true, element: <StorePage /> },
+      { path: "tienda/:productId", element: <StoreProductDetailPage /> },
       {
-        element: <PortalLayout />,
+        element: <ProtectedRoute />,
         children: [
-          { index: true, element: <StorePage /> },
-          { path: "tienda/:productId", element: <StoreProductDetailPage /> },
           { path: "compras", element: <PurchasesPage /> },
           { path: "live", element: <LivePage /> },
           { path: "envios", element: <ShippingPage /> },

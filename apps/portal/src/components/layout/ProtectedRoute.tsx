@@ -1,8 +1,10 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { loginPathWithReturn } from "@/lib/auth-redirect";
 import { useAuthStore } from "@/stores/auth.store";
 
 export default function ProtectedRoute() {
   const { user, isLoading } = useAuthStore();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -13,7 +15,8 @@ export default function ProtectedRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const returnTo = `${location.pathname}${location.search}`;
+    return <Navigate to={loginPathWithReturn(returnTo)} replace />;
   }
 
   return <Outlet />;
