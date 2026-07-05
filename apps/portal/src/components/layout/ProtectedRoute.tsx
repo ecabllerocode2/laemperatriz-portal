@@ -1,10 +1,12 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useOutletContext } from "react-router-dom";
 import { loginPathWithReturn } from "@/lib/auth-redirect";
+import type { PortalOutletContext } from "@/components/layout/PortalLayout";
 import { useAuthStore } from "@/stores/auth.store";
 
 export default function ProtectedRoute() {
   const { user, isLoading } = useAuthStore();
   const location = useLocation();
+  const parentContext = useOutletContext<PortalOutletContext | undefined>();
 
   if (isLoading) {
     return (
@@ -19,5 +21,5 @@ export default function ProtectedRoute() {
     return <Navigate to={loginPathWithReturn(returnTo)} replace />;
   }
 
-  return <Outlet />;
+  return <Outlet context={parentContext} />;
 }

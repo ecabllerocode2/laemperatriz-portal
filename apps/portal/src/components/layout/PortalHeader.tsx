@@ -1,5 +1,5 @@
 import { Facebook, LogIn, LogOut, MessageCircle, ShoppingBag, UserPlus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import NotificationsBell from "@/components/layout/NotificationsBell";
 import { loginPathWithReturn, registerPathWithReturn } from "@/lib/auth-redirect";
@@ -29,11 +29,13 @@ export default function PortalHeader({
   shellVariant = "default",
 }: PortalHeaderProps) {
   const { clearAuth } = useAuthStore();
+  const navigate = useNavigate();
   const returnTo = typeof window !== "undefined" ? window.location.pathname : "/";
 
   const handleLogout = async () => {
     await signOut(auth);
     clearAuth();
+    navigate("/", { replace: true });
   };
 
   return (
