@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requestPasswordResetEmail } from "@/lib/password-reset";
+import AuthBackToStore from "@/components/auth/AuthBackToStore";
 import { useAuthStore } from "@/stores/auth.store";
 
 const schema = z.object({
@@ -51,7 +52,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-neutral-silk px-4 py-8 sm:px-6">
+    <div className="relative flex min-h-dvh items-center justify-center bg-neutral-silk px-4 py-8 sm:px-6">
+      <AuthBackToStore />
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-md sm:p-8">
         <div className="mb-6 text-center">
           <img

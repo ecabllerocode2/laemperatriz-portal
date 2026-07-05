@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { Lock, Mail, MapPin, Phone, User } from "lucide-react";
 import AuthInput from "@/components/auth/AuthInput";
+import AuthBackToStore from "@/components/auth/AuthBackToStore";
 import PostalCodeHelpLink from "@/components/auth/PostalCodeHelpLink";
 import { auth } from "@/lib/firebase";
 import { linkPortalCustomer } from "@/lib/portal-customer";
@@ -68,7 +69,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-neutral-silk px-4 py-8 sm:px-6">
+    <div className="relative flex min-h-dvh items-center justify-center bg-neutral-silk px-4 py-8 sm:px-6">
+      <AuthBackToStore />
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-md sm:p-8">
         <div className="mb-6 text-center">
           <img
