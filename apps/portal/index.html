@@ -3,6 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (function () {
+        var standalone =
+          window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true;
+        if (!standalone) return;
+        document.documentElement.classList.add("pwa-standalone");
+        var vp = document.querySelector('meta[name="viewport"]');
+        if (vp) {
+          vp.setAttribute(
+            "content",
+            "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover"
+          );
+        }
+      })();
+    </script>
     <meta name="theme-color" content="#C8102E" />
     <meta name="description" content="Portal de clientas La Emperatriz" />
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg" />

@@ -26,6 +26,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html.pwa-standalone,
+html.pwa-standalone body {
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
 @media (min-width: 640px) {
   html {
     font-size: 15px;
