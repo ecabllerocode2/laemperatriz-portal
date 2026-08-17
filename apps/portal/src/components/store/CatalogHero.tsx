@@ -23,23 +23,20 @@ export default function CatalogHero({ imageUrl, imageAlt = "Colección La Empera
 
       <div className="portal-shell-store relative grid min-h-[min(88vh,760px)] grid-cols-1 items-center gap-10 py-14 sm:gap-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-20">
         <div className="flex flex-col justify-center lg:pr-4">
-          <p className="catalog-reveal catalog-delay-1 text-[0.65rem] font-medium uppercase tracking-[0.42em] text-brand-gold/90 sm:text-xs">
-            Joyería fina
-          </p>
-          <h1 className="catalog-reveal catalog-delay-2 mt-5 font-display text-[2.35rem] font-normal leading-[1.02] tracking-tight sm:text-5xl lg:text-[3.35rem] xl:text-6xl">
+          <h1 className="catalog-reveal catalog-delay-1 font-display text-[2.35rem] font-normal leading-[1.02] tracking-tight sm:text-5xl lg:text-[3.35rem] xl:text-6xl">
             Colección
             <br />
             <span className="bg-gradient-to-r from-brand-gold via-[#e8d5a3] to-brand-gold bg-clip-text text-transparent">
               La Emperatriz
             </span>
           </h1>
-          <p className="catalog-reveal catalog-delay-3 mt-5 max-w-md text-sm leading-relaxed text-neutral-pearl/55 sm:text-[0.9375rem]">
+          <p className="catalog-reveal catalog-delay-2 mt-5 max-w-md text-sm leading-relaxed text-neutral-pearl/55 sm:text-[0.9375rem]">
             Piezas seleccionadas para ti. Explora el catálogo y pide la tuya por WhatsApp.
           </p>
           <button
             type="button"
             onClick={scrollToCatalog}
-            className="catalog-reveal catalog-delay-4 group mt-10 inline-flex min-h-0 min-w-0 items-center gap-4 self-start"
+            className="catalog-reveal catalog-delay-3 group mt-10 inline-flex min-h-0 min-w-0 items-center gap-4 self-start"
           >
             <span className="flex size-11 items-center justify-center rounded-full border border-brand-gold/35 transition duration-500 group-hover:border-brand-gold group-hover:bg-brand-gold/10">
               <ArrowDown className="size-4 text-brand-gold transition duration-500 group-hover:translate-y-0.5" />

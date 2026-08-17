@@ -30,6 +30,21 @@ export default function StorePage() {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
+  useEffect(() => {
+    if (window.location.hash !== "#catalog") return;
+
+    const scrollToCatalog = () => {
+      document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    const timer = window.setTimeout(scrollToCatalog, 120);
+    window.addEventListener("hashchange", scrollToCatalog);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("hashchange", scrollToCatalog);
+    };
+  }, []);
+
   const categoryOptions = useMemo(() => {
     const fromApi = categories.map((category) => ({
       id: category.id,
