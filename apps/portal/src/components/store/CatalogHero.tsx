@@ -1,4 +1,5 @@
 import { ArrowDown } from "lucide-react";
+import { openCatalogSection } from "@/lib/catalog-scroll";
 
 interface CatalogHeroProps {
   imageUrl: string | null;
@@ -6,10 +7,6 @@ interface CatalogHeroProps {
 }
 
 export default function CatalogHero({ imageUrl, imageAlt = "Colección La Emperatriz" }: CatalogHeroProps) {
-  const scrollToCatalog = () => {
-    document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <section className="relative overflow-hidden bg-brand-night text-neutral-pearl">
       <div
@@ -35,7 +32,7 @@ export default function CatalogHero({ imageUrl, imageAlt = "Colección La Empera
           </p>
           <button
             type="button"
-            onClick={scrollToCatalog}
+            onClick={openCatalogSection}
             className="catalog-reveal catalog-delay-3 group mt-10 inline-flex min-h-0 min-w-0 items-center gap-4 self-start"
           >
             <span className="flex size-11 items-center justify-center rounded-full border border-brand-gold/35 transition duration-500 group-hover:border-brand-gold group-hover:bg-brand-gold/10">

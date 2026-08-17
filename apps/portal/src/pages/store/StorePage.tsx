@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Loader2, Search, ShoppingBag, X } from "lucide-react";
 import type { PortalStoreProduct } from "@emperatriz/types";
 import CatalogHero from "@/components/store/CatalogHero";
@@ -7,11 +7,13 @@ import StoreProductCard from "@/components/store/StoreProductCard";
 import { usePortalStoreCatalog } from "@/hooks/usePortalStoreCatalog";
 import { usePortalStoreCategories } from "@/hooks/usePortalStoreCategories";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { CATALOG_SECTION_ID, scrollToCatalogSection } from "@/lib/catalog-scroll";
 
 const FEATURED_COUNT = 4;
 
 export default function StorePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -31,19 +33,14 @@ export default function StorePage() {
   }, [searchInput]);
 
   useEffect(() => {
-    if (window.location.hash !== "#catalog") return;
+    if (location.pathname !== "/" || location.hash !== `#${CATALOG_SECTION_ID}`) return;
 
-    const scrollToCatalog = () => {
-      document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
+    const timer = window.setTimeout(() => {
+      scrollToCatalogSection();
+    }, 150);
 
-    const timer = window.setTimeout(scrollToCatalog, 120);
-    window.addEventListener("hashchange", scrollToCatalog);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("hashchange", scrollToCatalog);
-    };
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [location.hash, location.pathname]);
 
   const categoryOptions = useMemo(() => {
     const fromApi = categories.map((category) => ({
@@ -85,12 +82,9 @@ export default function StorePage() {
     <>
       {showHero ? <CatalogHero imageUrl={heroImage} imageAlt={heroAlt} /> : null}
 
-      <div
-        id="catalog"
-        className="portal-shell-store scroll-mt-20 space-y-10 py-10 sm:space-y-12 sm:py-12 lg:py-14"
-      >
+      <div className="portal-shell-store space-y-10 py-10 sm:space-y-12 sm:py-12 lg:py-14">
         {featuredProducts.length > 0 ? (
-          <section className="catalog-section space-y-5">
+          <section id="destacados" className="catalog-section scroll-mt-20 space-y-5">
             <div className="catalog-reveal catalog-delay-1">
               <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-brand-gold">
                 Selección
@@ -113,7 +107,10 @@ export default function StorePage() {
           </section>
         ) : null}
 
-        <section className="catalog-section space-y-5">
+        <section
+          id={CATALOG_SECTION_ID}
+          className="catalog-section scroll-mt-24 space-y-5"
+        >
           <div className="catalog-reveal catalog-delay-1">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-neutral-400">
               Explorar

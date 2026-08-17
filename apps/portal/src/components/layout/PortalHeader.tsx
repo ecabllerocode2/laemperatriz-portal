@@ -1,6 +1,7 @@
 import { Facebook } from "lucide-react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
+import { CATALOG_SECTION_ID, openCatalogSection } from "@/lib/catalog-scroll";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { catalogWhatsAppUrl } from "@/lib/whatsapp-order";
 
@@ -9,12 +10,21 @@ const navItemClass =
 
 export default function PortalHeader() {
   const location = useLocation();
-  const onCatalog = location.pathname === "/" && location.hash === "#catalog";
+  const navigate = useNavigate();
+  const onCatalog = location.pathname === "/" && location.hash === `#${CATALOG_SECTION_ID}`;
+
+  const goToCatalog = () => {
+    if (location.pathname !== "/") {
+      navigate({ pathname: "/", hash: CATALOG_SECTION_ID });
+      return;
+    }
+    openCatalogSection();
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200/60 bg-white/90 backdrop-blur-md">
       <div className="portal-shell-store flex items-center justify-between gap-3 py-4 sm:gap-4">
-        <Link to="/" className="flex min-h-0 min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+        <NavLink to="/" className="flex min-h-0 min-w-0 shrink-0 items-center gap-2 sm:gap-3">
           <img
             src="/favicon.jpeg"
             alt="La Emperatriz"
@@ -23,7 +33,7 @@ export default function PortalHeader() {
           <span className="hidden font-display text-base tracking-tight text-brand-night sm:inline sm:text-lg">
             La Emperatriz
           </span>
-        </Link>
+        </NavLink>
 
         <nav className="flex min-w-0 flex-1 items-center justify-center gap-5 sm:gap-8">
           <NavLink
@@ -35,12 +45,13 @@ export default function PortalHeader() {
           >
             Inicio
           </NavLink>
-          <Link
-            to="/#catalog"
-            className={`${navItemClass} ${onCatalog ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`}
+          <button
+            type="button"
+            onClick={goToCatalog}
+            className={`${navItemClass} min-h-0 min-w-0 ${onCatalog ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`}
           >
             Catálogo
-          </Link>
+          </button>
         </nav>
 
         <div className="flex shrink-0 items-center gap-1">
