@@ -42,19 +42,13 @@ export default function StorePage() {
     return () => window.clearTimeout(timer);
   }, [location.hash, location.pathname]);
 
-  const categoryOptions = useMemo(() => {
-    const fromApi = categories.map((category) => ({
-      id: category.id,
-      label: category.name,
-    }));
-    const productCategories = new Set(products.map((product) => product.categoryId));
-    for (const id of productCategories) {
-      if (!fromApi.some((row) => row.id === id)) {
-        fromApi.push({ id, label: id.replace(/-/g, " ") });
-      }
-    }
-    return fromApi.sort((a, b) => a.label.localeCompare(b.label, "es"));
-  }, [categories, products]);
+  const categoryOptions = useMemo(
+    () =>
+      categories
+        .map((category) => ({ id: category.id, label: category.name }))
+        .sort((a, b) => a.label.localeCompare(b.label, "es")),
+    [categories],
+  );
 
   const featuredProducts = useMemo(() => {
     if (debouncedSearch || categoryId) return [];
@@ -216,8 +210,16 @@ export default function StorePage() {
             ) : null}
 
             {hasMore ? (
-              <div ref={infiniteScrollRef} className="flex justify-center py-8">
+              <div ref={infiniteScrollRef} className="flex flex-col items-center gap-3 py-8">
                 {loadingMore ? <Loader2 className="size-5 animate-spin text-neutral-300" /> : null}
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="rounded-full border border-neutral-200 px-6 py-2.5 text-xs font-medium uppercase tracking-[0.16em] text-brand-night transition hover:border-brand-night disabled:opacity-50"
+                >
+                  {loadingMore ? "Cargando..." : "Cargar más productos"}
+                </button>
               </div>
             ) : null}
           </>

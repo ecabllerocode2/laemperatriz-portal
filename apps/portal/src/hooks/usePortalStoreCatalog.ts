@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PortalStoreProduct } from "@emperatriz/types";
+import type { PortalStoreProduct, PortalStoreProductsResponse } from "@emperatriz/types";
+import {
+  catalogPageCacheKey,
+  readPortalCatalogCache,
+  writePortalCatalogCache,
+} from "@/lib/portal-catalog-cache";
 import { fetchStoreProducts } from "@/lib/portal-store";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 export function usePortalStoreCatalog(filters: {
   search: string;
@@ -23,6 +28,24 @@ export function usePortalStoreCatalog(filters: {
       else setLoadingMore(true);
       setError(null);
 
+      const cacheKey = catalogPageCacheKey({
+        search: filters.search,
+        categoryId: filters.categoryId,
+        ...(mode === "more" && nextCursor ? { cursor: nextCursor } : {}),
+      });
+
+      if (mode === "reset") {
+        const cached = readPortalCatalogCache<PortalStoreProductsResponse>(cacheKey);
+        if (cached) {
+          setProducts(cached.products);
+          setCursor(cached.pagination.nextCursor);
+          setHasMore(cached.pagination.hasMore);
+          setLoading(false);
+          setLoadingMore(false);
+          return;
+        }
+      }
+
       try {
         const result = await fetchStoreProducts({
           limit: PAGE_SIZE,
@@ -32,6 +55,10 @@ export function usePortalStoreCatalog(filters: {
         });
 
         if (requestId !== requestIdRef.current) return;
+
+        if (mode === "reset") {
+          writePortalCatalogCache(cacheKey, result);
+        }
 
         setProducts((prev) =>
           mode === "reset" ? result.products : [...prev, ...result.products],
