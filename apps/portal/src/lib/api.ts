@@ -1,10 +1,10 @@
+import { auth } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/auth.store";
-import { getAuth } from "firebase/auth";
 
 const API_URL = import.meta.env["VITE_API_URL"] || "";
 
 async function resolveAuthToken(forceRefresh = false): Promise<string | undefined> {
-  const firebaseUser = getAuth().currentUser;
+  const firebaseUser = auth.currentUser;
   if (firebaseUser) {
     return firebaseUser.getIdToken(forceRefresh);
   }
@@ -38,7 +38,7 @@ export async function apiRequest<T>(
     retryOnInvalidToken &&
     res.status === 401 &&
     json.error?.code === "INVALID_TOKEN" &&
-    getAuth().currentUser
+    auth.currentUser
   ) {
     const freshToken = await resolveAuthToken(true);
     if (freshToken && freshToken !== token) {

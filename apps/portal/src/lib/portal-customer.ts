@@ -1,5 +1,5 @@
 import { apiRequest } from "@/lib/api";
-import { getAuth } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface RegisterCustomerResponse {
   customerId: string;
@@ -17,6 +17,6 @@ export async function linkPortalCustomer(data: {
     body: JSON.stringify(data),
   });
 
-  await getAuth().currentUser?.getIdToken(true);
+  await auth.currentUser?.getIdToken(true);
   return result.customerId;
 }
