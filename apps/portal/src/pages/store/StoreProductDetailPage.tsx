@@ -110,7 +110,7 @@ export default function StoreProductDetailPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="portal-shell-store space-y-6 py-8 sm:py-10 lg:py-12">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -120,8 +120,8 @@ export default function StoreProductDetailPage() {
         Volver
       </button>
 
-      <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
-        <div className="space-y-3 p-4 sm:p-5 lg:p-6">
+      <div className="overflow-hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 xl:gap-14">
+        <div className="space-y-4">
           {needsVariant ? (
             <VariantPicker
               variants={variants}
@@ -132,29 +132,29 @@ export default function StoreProductDetailPage() {
           <ProductMediaCarousel media={galleryMedia} productName={product.name} />
         </div>
 
-        <div className="space-y-4 p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center lg:p-8 lg:py-10 xl:p-10">
+        <div className="space-y-5 pt-6 lg:pt-2">
           <div className="flex flex-wrap items-center gap-2">
             {hasProductDiscount ? (
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
-                Descuento −{product.earlyPayDiscountPercent}%
+              <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-brand-gold">
+                −{product.earlyPayDiscountPercent}% descuento
               </span>
             ) : null}
           </div>
 
           <div>
-            <h1 className="font-display text-2xl text-brand-night lg:text-3xl xl:text-4xl">
+            <h1 className="font-display text-3xl font-normal text-brand-night lg:text-4xl xl:text-5xl">
               {product.name}
             </h1>
-            <p className="mt-1 text-xs text-neutral-500 lg:text-sm">SKU {product.sku}</p>
+            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-neutral-400">SKU {product.sku}</p>
           </div>
 
           {hasProductDiscount ? (
-            <div className="space-y-1">
+            <div className="flex items-baseline gap-3">
+              <p className="text-2xl font-medium text-brand-night">{formatCurrency(pricing.total)}</p>
               <p className="text-sm text-neutral-400 line-through">{formatCurrency(pricing.subtotal)}</p>
-              <p className="text-2xl font-bold text-brand-red">{formatCurrency(pricing.total)}</p>
             </div>
           ) : (
-            <p className="text-2xl font-bold text-brand-red">{formatCurrency(product.price)}</p>
+            <p className="text-2xl font-medium text-brand-night">{formatCurrency(product.price)}</p>
           )}
 
           {product.description ? (
@@ -166,7 +166,7 @@ export default function StoreProductDetailPage() {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#1ebe5d] lg:max-w-md lg:text-base"
+              className="inline-flex w-full items-center justify-center gap-2 bg-brand-night px-4 py-3.5 text-sm font-medium uppercase tracking-[0.14em] text-white transition duration-300 hover:bg-brand-red lg:max-w-sm"
             >
               <WhatsAppIcon className="size-5" />
               Pedir por WhatsApp

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -178,6 +178,110 @@ a,
 .live-scroll-touch {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+}
+
+@keyframes catalog-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes catalog-fade-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(36px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes catalog-arch-reveal {
+  from {
+    clip-path: inset(100% 0 0 0 round 50% 50% 0 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 50% 50% 0 0);
+    opacity: 1;
+  }
+}
+
+@keyframes catalog-image-drift {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes catalog-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.02);
+  }
+}
+
+.catalog-reveal {
+  animation: catalog-fade-up 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.catalog-reveal-arch {
+  animation: catalog-fade-in-right 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.catalog-arch-frame {
+  border-radius: 50% 50% 0 0;
+  animation: catalog-arch-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.catalog-arch-image {
+  animation: catalog-image-drift 18s ease-in-out infinite alternate;
+}
+
+.catalog-arch-glow {
+  animation: catalog-glow-pulse 5s ease-in-out infinite;
+}
+
+.catalog-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.catalog-delay-2 {
+  animation-delay: 0.18s;
+}
+
+.catalog-delay-3 {
+  animation-delay: 0.28s;
+}
+
+.catalog-delay-4 {
+  animation-delay: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-reveal,
+  .catalog-reveal-arch,
+  .catalog-arch-frame,
+  .catalog-arch-image,
+  .catalog-arch-glow {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
 }
 
 @media (min-width: 640px) {

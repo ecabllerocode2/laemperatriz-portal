@@ -14,9 +14,9 @@ export interface PortalOutletContext {
 
 export default function PortalLayout() {
   return (
-    <div className="min-h-dvh bg-neutral-silk">
+    <div className="min-h-dvh bg-white">
       <PortalHeader />
-      <main className="portal-shell-store space-y-4 py-4 sm:space-y-5 sm:py-5 lg:space-y-6 lg:py-6">
+      <main>
         <Outlet />
       </main>
     </div>
