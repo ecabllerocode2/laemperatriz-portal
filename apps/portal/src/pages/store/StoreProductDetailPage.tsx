@@ -145,7 +145,7 @@ export default function StoreProductDetailPage() {
         <div className="space-y-5 pt-6 lg:pt-0">
           <div className="flex flex-wrap items-center gap-2">
             {hasProductDiscount ? (
-              <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-brand-gold">
+              <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-brand-red">
                 −{product.earlyPayDiscountPercent}% descuento
               </span>
             ) : null}
@@ -181,7 +181,7 @@ export default function StoreProductDetailPage() {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-2 bg-brand-night px-4 py-3.5 text-sm font-medium uppercase tracking-[0.14em] text-white transition duration-300 hover:bg-brand-red lg:max-w-sm"
+              className="inline-flex w-full items-center justify-center gap-2 bg-brand-red px-4 py-3.5 text-sm font-medium uppercase tracking-[0.14em] text-white transition duration-300 hover:bg-brand-red-dark lg:max-w-sm"
             >
               <WhatsAppIcon className="size-5" />
               Pedir por WhatsApp

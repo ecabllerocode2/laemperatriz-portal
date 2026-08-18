@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { CATALOG_SECTION_ID, goToStoreHome, openCatalogSection } from "@/lib/catalog-scroll";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
-import { catalogWhatsAppUrl } from "@/lib/whatsapp-order";
+import { customerServiceWhatsAppUrl } from "@/lib/whatsapp-order";
 
 const navItemClass =
   "text-[0.7rem] font-medium uppercase tracking-[0.18em] transition duration-300 sm:text-xs";
@@ -52,14 +52,14 @@ export default function PortalHeader() {
           <button
             type="button"
             onClick={handleGoHome}
-            className={`${navItemClass} min-h-0 min-w-0 ${onHome ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`}
+            className={`${navItemClass} min-h-0 min-w-0 ${onHome ? "text-brand-red" : "text-neutral-400 hover:text-brand-night"}`}
           >
             Inicio
           </button>
           <button
             type="button"
             onClick={goToCatalog}
-            className={`${navItemClass} min-h-0 min-w-0 ${onCatalog ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`}
+            className={`${navItemClass} min-h-0 min-w-0 ${onCatalog ? "text-brand-red" : "text-neutral-400 hover:text-brand-night"}`}
           >
             Catálogo
           </button>
@@ -76,7 +76,7 @@ export default function PortalHeader() {
             <Facebook className="h-4 w-4" fill="currentColor" strokeWidth={0} />
           </a>
           <a
-            href={catalogWhatsAppUrl("Hola, vengo del catálogo de La Emperatriz.")}
+            href={customerServiceWhatsAppUrl("Hola, vengo del catálogo de La Emperatriz.")}
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 transition duration-300 hover:bg-neutral-50 hover:text-[#25D366]"

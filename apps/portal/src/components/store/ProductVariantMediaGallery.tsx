@@ -50,8 +50,8 @@ export default function ProductVariantMediaGallery({
                 aria-pressed={selected}
                 className={`group relative aspect-[3/4] w-full overflow-hidden rounded-md border bg-neutral-100 transition duration-300 ${
                   selected
-                    ? "border-brand-night ring-2 ring-brand-night/20"
-                    : "border-neutral-200 hover:border-neutral-400"
+                    ? "border-brand-red ring-2 ring-brand-red/20"
+                    : "border-neutral-200 hover:border-brand-red/40"
                 }`}
               >
                 {thumbUrl ? (
@@ -67,7 +67,7 @@ export default function ProductVariantMediaGallery({
                   </span>
                 )}
                 {selected ? (
-                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-brand-night/70 px-1 py-1 text-[0.55rem] font-medium leading-tight text-white">
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-brand-red/80 px-1 py-1 text-[0.55rem] font-medium leading-tight text-white">
                     {label.length > 18 ? `${label.slice(0, 16)}…` : label}
                   </span>
                 ) : null}

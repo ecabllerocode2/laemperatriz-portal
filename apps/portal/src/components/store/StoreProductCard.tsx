@@ -33,7 +33,7 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
           </div>
         )}
         {hasProductDiscount ? (
-          <span className="absolute left-2 top-2 rounded-full bg-brand-night/75 px-2 py-0.5 text-[10px] font-medium tracking-wide text-brand-gold backdrop-blur-sm">
+          <span className="absolute left-2 top-2 rounded-full bg-brand-red px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
             −{product.earlyPayDiscountPercent}%
           </span>
         ) : null}

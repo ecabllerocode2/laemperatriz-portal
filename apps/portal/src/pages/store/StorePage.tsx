@@ -8,6 +8,7 @@ import { usePortalStoreCatalog } from "@/hooks/usePortalStoreCatalog";
 import { usePortalStoreCategories } from "@/hooks/usePortalStoreCategories";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { CATALOG_SECTION_ID, scrollToCatalogSection } from "@/lib/catalog-scroll";
+import { buildCatalogHeroSlides } from "@/lib/catalog-hero-slides";
 
 const FEATURED_COUNT = 4;
 
@@ -61,8 +62,7 @@ export default function StorePage() {
     return products.filter((product) => !featuredIds.has(product.productId));
   }, [featuredProducts, products]);
 
-  const heroImage = featuredProducts[0]?.imageUrl ?? products.find((p) => p.imageUrl)?.imageUrl ?? null;
-  const heroAlt = featuredProducts[0]?.name ?? "Colección La Emperatriz";
+  const heroSlides = useMemo(() => buildCatalogHeroSlides(products), [products]);
   const showHero = !debouncedSearch && !categoryId;
 
   const openProduct = useCallback(
@@ -74,13 +74,13 @@ export default function StorePage() {
 
   return (
     <>
-      {showHero ? <CatalogHero imageUrl={heroImage} imageAlt={heroAlt} /> : null}
+      {showHero ? <CatalogHero slides={heroSlides} /> : null}
 
       <div className="portal-shell-store space-y-10 py-10 sm:space-y-12 sm:py-12 lg:py-14">
         {featuredProducts.length > 0 ? (
           <section id="destacados" className="catalog-section scroll-mt-20 space-y-5">
             <div className="catalog-reveal catalog-delay-1">
-              <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-brand-gold">
+              <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-brand-red">
                 Selección
               </p>
               <h2 className="mt-2 font-display text-2xl font-normal text-brand-night sm:text-3xl">
@@ -106,7 +106,7 @@ export default function StorePage() {
           className="catalog-section scroll-mt-24 space-y-5"
         >
           <div className="catalog-reveal catalog-delay-1">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-neutral-400">
+            <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-neutral-500">
               Explorar
             </p>
             <h2 className="mt-2 font-display text-2xl font-normal text-brand-night sm:text-3xl">
@@ -120,8 +120,8 @@ export default function StorePage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Buscar por nombre o SKU"
-              className="w-full border-b border-neutral-200 bg-transparent py-3 pl-7 pr-8 text-sm text-brand-night outline-none transition placeholder:text-neutral-400 focus:border-brand-gold"
+              placeholder="Buscar por nombre"
+              className="w-full border-b border-neutral-200 bg-transparent py-3 pl-7 pr-8 text-sm text-brand-night outline-none transition placeholder:text-neutral-400 focus:border-brand-red"
             />
             {searchInput ? (
               <button
@@ -136,14 +136,14 @@ export default function StorePage() {
           </div>
 
           {categoryOptions.length > 0 ? (
-            <div className="catalog-reveal catalog-delay-3 live-scroll-touch flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
+            <div className="catalog-category-cloud catalog-reveal catalog-delay-3">
               <button
                 type="button"
                 onClick={() => setCategoryId(null)}
-                className={`shrink-0 rounded-full px-4 py-2 text-[0.7rem] font-medium uppercase tracking-[0.12em] transition duration-300 ${
+                className={`min-h-0 min-w-0 rounded-full px-2.5 py-1 text-[0.58rem] font-medium uppercase tracking-[0.08em] transition duration-300 sm:px-3 sm:text-[0.62rem] ${
                   categoryId === null
-                    ? "bg-brand-night text-white"
-                    : "text-neutral-500 ring-1 ring-neutral-200 hover:text-brand-night"
+                    ? "bg-brand-red text-white"
+                    : "bg-white text-brand-night ring-1 ring-neutral-200 hover:ring-brand-red/40"
                 }`}
               >
                 Todas
@@ -153,10 +153,10 @@ export default function StorePage() {
                   key={category.id}
                   type="button"
                   onClick={() => setCategoryId(category.id)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-[0.7rem] font-medium capitalize tracking-[0.06em] transition duration-300 ${
+                  className={`min-h-0 min-w-0 rounded-full px-2.5 py-1 text-[0.58rem] font-medium capitalize tracking-[0.04em] transition duration-300 sm:px-3 sm:text-[0.62rem] ${
                     categoryId === category.id
-                      ? "bg-brand-night text-white"
-                      : "text-neutral-500 ring-1 ring-neutral-200 hover:text-brand-night"
+                      ? "bg-brand-red text-white"
+                      : "bg-white text-brand-night ring-1 ring-neutral-200 hover:ring-brand-red/40"
                   }`}
                 >
                   {category.label}
@@ -216,7 +216,7 @@ export default function StorePage() {
                   type="button"
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="rounded-full border border-neutral-200 px-6 py-2.5 text-xs font-medium uppercase tracking-[0.16em] text-brand-night transition hover:border-brand-night disabled:opacity-50"
+                  className="rounded-full border border-neutral-200 px-6 py-2.5 text-xs font-medium uppercase tracking-[0.16em] text-brand-night transition hover:border-brand-red hover:text-brand-red disabled:opacity-50"
                 >
                   {loadingMore ? "Cargando..." : "Cargar más productos"}
                 </button>
