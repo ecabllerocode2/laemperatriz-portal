@@ -11,6 +11,8 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
   const hasProductDiscount = product.earlyPayDiscountPercent > 0;
   const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const soldOut = product.stock < 1;
+  const variantCount = product.variants?.length ?? 0;
+  const showVariantCount = variantCount > 1;
 
   return (
     <button
@@ -35,6 +37,11 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
         {hasProductDiscount ? (
           <span className="absolute left-2 top-2 rounded-full bg-brand-red px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
             −{product.earlyPayDiscountPercent}%
+          </span>
+        ) : null}
+        {showVariantCount ? (
+          <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-brand-night shadow-sm">
+            {variantCount} variantes
           </span>
         ) : null}
         {soldOut ? (

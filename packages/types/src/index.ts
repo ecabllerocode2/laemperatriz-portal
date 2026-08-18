@@ -105,6 +105,12 @@ export const VARIANT_NOT_APPLICABLE = "No aplica";
 /** Variante de inventario (color, talla, stock propio). */
 export interface ProductVariant {
   id: string;
+  /** SKU único de 6 dígitos asignado a esta variante (100001–999999). */
+  sku?: string;
+  /** Nombre descriptivo de la variante (ej. "Rosa dorado"). */
+  name?: string;
+  /** Descripción visible en la tienda para esta variante. */
+  description?: string;
   color: string;
   size: string;
   stock: number;
@@ -119,6 +125,8 @@ export interface PortalProductVariant {
   sku?: string;
   /** Nombre descriptivo de la variante (ej. "Rosa dorado"). */
   name?: string;
+  /** Descripción visible en la tienda para esta variante. */
+  description?: string;
   color: string;
   size: string;
   stock: number;

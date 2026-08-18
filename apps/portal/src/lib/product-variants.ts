@@ -29,7 +29,12 @@ export function variantsNeedSelection(variants: PortalProductVariant[]): boolean
   return variantsAvailableForSale(variants).length > 1;
 }
 
-export function formatVariantLabel(variant: Pick<PortalProductVariant, "color" | "size">): string | null {
+export function formatVariantLabel(
+  variant: Pick<PortalProductVariant, "name" | "color" | "size">,
+): string | null {
+  const name = variant.name?.trim();
+  if (name) return name;
+
   const parts: string[] = [];
   if (variant.color && variant.color !== VARIANT_NOT_APPLICABLE) parts.push(variant.color);
   if (variant.size && variant.size !== VARIANT_NOT_APPLICABLE) parts.push(`Talla ${variant.size}`);

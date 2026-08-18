@@ -107,6 +107,7 @@ export default function StoreProductDetailPage() {
   const displaySku = activeVariant ? resolveVariantSku(activeVariant, product.sku) : product.sku;
   const canOrder = product.stock >= 1 && Boolean(confirmedVariantId);
   const variantLabel = activeVariant ? formatVariantLabel(activeVariant) : null;
+  const variantDescription = activeVariant?.description?.trim() || product.description?.trim() || null;
   const selectedVariantName =
     activeVariant && needsVariant
       ? formatVariantDisplayLabel(
@@ -172,8 +173,8 @@ export default function StoreProductDetailPage() {
             <p className="text-2xl font-medium text-brand-night">{formatCurrency(product.price)}</p>
           )}
 
-          {product.description ? (
-            <p className="text-sm leading-relaxed text-neutral-600">{product.description}</p>
+          {variantDescription ? (
+            <p className="text-sm leading-relaxed text-neutral-600">{variantDescription}</p>
           ) : null}
 
           {canOrder ? (
