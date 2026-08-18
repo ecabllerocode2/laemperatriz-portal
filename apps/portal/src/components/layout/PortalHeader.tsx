@@ -1,7 +1,7 @@
 import { Facebook } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
-import { CATALOG_SECTION_ID, goToStoreHome, openCatalogSection } from "@/lib/catalog-scroll";
+import { CATALOG_SECTION_ID, openCatalogSection, scrollToTop } from "@/lib/catalog-scroll";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { customerServiceWhatsAppUrl } from "@/lib/whatsapp-order";
 
@@ -27,7 +27,11 @@ export default function PortalHeader() {
       navigate("/");
       return;
     }
-    goToStoreHome();
+
+    navigate({ pathname: "/" }, { replace: true });
+    window.requestAnimationFrame(() => {
+      scrollToTop();
+    });
   };
 
   return (

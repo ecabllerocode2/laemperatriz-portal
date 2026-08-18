@@ -18,9 +18,14 @@ export default function CatalogHero({ slides }: CatalogHeroProps) {
     [slides],
   );
 
+  const slidesKey = useMemo(
+    () => safeSlides.map((slide) => slide.categoryId).join("|"),
+    [safeSlides],
+  );
+
   useEffect(() => {
     setSlideIndex(0);
-  }, [safeSlides]);
+  }, [slidesKey]);
 
   useEffect(() => {
     if (safeSlides.length <= 1) return;
@@ -30,7 +35,7 @@ export default function CatalogHero({ slides }: CatalogHeroProps) {
     }, HERO_ROTATION_MS);
 
     return () => window.clearInterval(timer);
-  }, [safeSlides]);
+  }, [safeSlides.length, slidesKey]);
 
   const currentSlide = safeSlides[slideIndex] ?? safeSlides[0] ?? null;
 
@@ -78,7 +83,7 @@ export default function CatalogHero({ slides }: CatalogHeroProps) {
           <div className="catalog-arch-frame relative aspect-[3/4] w-full overflow-hidden">
             {currentSlide ? (
               <img
-                key={currentSlide.imageUrl}
+                key={`${currentSlide.categoryId}-${currentSlide.imageUrl}`}
                 src={currentSlide.imageUrl}
                 alt={currentSlide.imageAlt}
                 className="catalog-hero-slide size-full object-cover"

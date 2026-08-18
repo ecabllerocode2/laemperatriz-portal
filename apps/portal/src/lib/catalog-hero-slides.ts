@@ -11,11 +11,23 @@ function pickRandom<T>(items: T[]): T | null {
   return items[Math.floor(Math.random() * items.length)] ?? null;
 }
 
+export function resolveProductCoverImage(
+  product: Pick<PortalStoreProduct, "imageUrl" | "imageUrls" | "mediaItems">,
+): string | null {
+  if (product.imageUrl) return product.imageUrl;
+  if (product.imageUrls.length > 0) return product.imageUrls[0] ?? null;
+
+  const firstImage = product.mediaItems?.find(
+    (item) => item.kind === "image" || !/\.(mp4|webm)(\?.*)?$/i.test(item.url),
+  );
+  return firstImage?.url ?? product.mediaItems?.[0]?.url ?? null;
+}
+
 export function buildCatalogHeroSlides(products: PortalStoreProduct[]): CatalogHeroSlide[] {
   const byCategory = new Map<string, PortalStoreProduct[]>();
 
   for (const product of products) {
-    if (!product.imageUrl || product.stock < 1) continue;
+    if (product.stock < 1 || !resolveProductCoverImage(product)) continue;
     const list = byCategory.get(product.categoryId) ?? [];
     list.push(product);
     byCategory.set(product.categoryId, list);
@@ -25,9 +37,11 @@ export function buildCatalogHeroSlides(products: PortalStoreProduct[]): CatalogH
 
   for (const [categoryId, categoryProducts] of byCategory) {
     const pick = pickRandom(categoryProducts);
-    if (!pick?.imageUrl) continue;
+    if (!pick) continue;
+    const imageUrl = resolveProductCoverImage(pick);
+    if (!imageUrl) continue;
     slides.push({
-      imageUrl: pick.imageUrl,
+      imageUrl,
       imageAlt: pick.name,
       categoryId,
     });

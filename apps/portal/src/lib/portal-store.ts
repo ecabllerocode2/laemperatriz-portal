@@ -5,6 +5,10 @@ import type {
   PortalLiveOrderResult,
 } from "@emperatriz/types";
 import { apiRequest } from "@/lib/api";
+import {
+  type CatalogHeroSlide,
+  resolveProductCoverImage,
+} from "@/lib/catalog-hero-slides";
 
 export interface StoreProductsQuery {
   limit?: number;
@@ -34,6 +38,41 @@ export async function fetchStoreProduct(productId: string): Promise<PortalStoreP
 
 export async function fetchStoreCategories(): Promise<Category[]> {
   return apiRequest<Category[]>("/api/portal/store/categories");
+}
+
+function pickRandomProduct<T>(items: T[]): T | null {
+  if (items.length === 0) return null;
+  return items[Math.floor(Math.random() * items.length)] ?? null;
+}
+
+export async function fetchCatalogHeroSlides(
+  categories: Pick<Category, "id">[],
+): Promise<CatalogHeroSlide[]> {
+  const slides = await Promise.all(
+    categories.map(async (category) => {
+      try {
+        const response = await fetchStoreProducts({ categoryId: category.id, limit: 12 });
+        const withImage = response.products.filter(
+          (product) => product.stock > 0 && resolveProductCoverImage(product),
+        );
+        const pick = pickRandomProduct(withImage) ?? withImage[0];
+        if (!pick) return null;
+
+        const imageUrl = resolveProductCoverImage(pick);
+        if (!imageUrl) return null;
+
+        return {
+          imageUrl,
+          imageAlt: pick.name,
+          categoryId: category.id,
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return slides.filter((slide): slide is CatalogHeroSlide => slide !== null);
 }
 
 export async function createPortalStoreOrder(input: {

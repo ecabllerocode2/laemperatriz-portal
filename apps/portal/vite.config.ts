@@ -25,7 +25,7 @@ export default defineConfig({
         short_name: "Emperatriz",
         description: "Portal de clientas La Emperatriz",
         lang: "es",
-        theme_color: "#C8102E",
+        theme_color: "#8F0F24",
         background_color: "#F7F7F7",
         display: "standalone",
         orientation: "portrait",

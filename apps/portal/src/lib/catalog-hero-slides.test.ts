@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PortalStoreProduct } from "@emperatriz/types";
-import { buildCatalogHeroSlides, pickNextHeroSlideIndex } from "./catalog-hero-slides";
+import { buildCatalogHeroSlides, pickNextHeroSlideIndex, resolveProductCoverImage } from "./catalog-hero-slides";
 
 function product(
   partial: Partial<PortalStoreProduct> & Pick<PortalStoreProduct, "productId" | "categoryId">,
@@ -30,6 +30,32 @@ describe("buildCatalogHeroSlides", () => {
 
     expect(slides).toHaveLength(2);
     expect(new Set(slides.map((slide) => slide.categoryId))).toEqual(new Set(["cat-a", "cat-b"]));
+  });
+
+  it("uses imageUrls when imageUrl is missing", () => {
+    const slides = buildCatalogHeroSlides([
+      product({
+        productId: "a1",
+        categoryId: "cat-a",
+        imageUrl: null,
+        imageUrls: ["https://img/a1.jpg"],
+        name: "A1",
+      }),
+    ]);
+
+    expect(slides).toHaveLength(1);
+    expect(slides[0]?.imageUrl).toBe("https://img/a1.jpg");
+  });
+});
+
+describe("resolveProductCoverImage", () => {
+  it("falls back to imageUrls", () => {
+    expect(
+      resolveProductCoverImage({
+        imageUrl: null,
+        imageUrls: ["https://img/fallback.jpg"],
+      }),
+    ).toBe("https://img/fallback.jpg");
   });
 });
 

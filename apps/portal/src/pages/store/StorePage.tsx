@@ -7,10 +7,8 @@ import StoreProductCard from "@/components/store/StoreProductCard";
 import { usePortalStoreCatalog } from "@/hooks/usePortalStoreCatalog";
 import { usePortalStoreCategories } from "@/hooks/usePortalStoreCategories";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { usePortalHeroSlides } from "@/hooks/usePortalHeroSlides";
 import { CATALOG_SECTION_ID, scrollToCatalogSection } from "@/lib/catalog-scroll";
-import { buildCatalogHeroSlides } from "@/lib/catalog-hero-slides";
-
-const FEATURED_COUNT = 4;
 
 export default function StorePage() {
   const navigate = useNavigate();
@@ -19,6 +17,7 @@ export default function StorePage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const { categories } = usePortalStoreCategories();
+  const heroSlides = usePortalHeroSlides(categories);
   const { products, loading, loadingMore, hasMore, error, loadMore, reload } =
     usePortalStoreCatalog({ search: debouncedSearch, categoryId });
 
@@ -54,18 +53,6 @@ export default function StorePage() {
   const categoryChipClass = (active: boolean) =>
     `catalog-category-chip ${active ? "catalog-category-chip--active" : "catalog-category-chip--idle"}`;
 
-  const featuredProducts = useMemo(() => {
-    if (debouncedSearch || categoryId) return [];
-    return products.filter((product) => product.stock > 0).slice(0, FEATURED_COUNT);
-  }, [categoryId, debouncedSearch, products]);
-
-  const catalogProducts = useMemo(() => {
-    if (featuredProducts.length === 0) return products;
-    const featuredIds = new Set(featuredProducts.map((product) => product.productId));
-    return products.filter((product) => !featuredIds.has(product.productId));
-  }, [featuredProducts, products]);
-
-  const heroSlides = useMemo(() => buildCatalogHeroSlides(products), [products]);
   const showHero = !debouncedSearch && !categoryId;
 
   const openProduct = useCallback(
@@ -80,30 +67,6 @@ export default function StorePage() {
       {showHero ? <CatalogHero slides={heroSlides} /> : null}
 
       <div className="portal-shell-store space-y-10 py-10 sm:space-y-12 sm:py-12 lg:py-14">
-        {featuredProducts.length > 0 ? (
-          <section id="destacados" className="catalog-section scroll-mt-20 space-y-5">
-            <div className="catalog-reveal catalog-delay-1">
-              <p className="text-[0.65rem] font-medium uppercase tracking-[0.38em] text-brand-red">
-                Selección
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-normal text-brand-night sm:text-3xl">
-                Destacados
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:gap-5">
-              {featuredProducts.map((product, index) => (
-                <div
-                  key={product.productId}
-                  className="catalog-reveal"
-                  style={{ animationDelay: `${0.12 + index * 0.08}s` }}
-                >
-                  <StoreProductCard product={product} onSelect={() => openProduct(product)} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
         <section
           id={CATALOG_SECTION_ID}
           className="catalog-section scroll-mt-24 space-y-5"
@@ -190,19 +153,17 @@ export default function StorePage() {
           </section>
         ) : (
           <>
-            {catalogProducts.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 lg:gap-5 xl:gap-6">
-                {catalogProducts.map((product, index) => (
-                  <div
-                    key={product.productId}
-                    className="catalog-reveal"
-                    style={{ animationDelay: `${Math.min(index * 0.04, 0.48)}s` }}
-                  >
-                    <StoreProductCard product={product} onSelect={() => openProduct(product)} />
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 lg:gap-5 xl:gap-6">
+              {products.map((product, index) => (
+                <div
+                  key={product.productId}
+                  className="catalog-reveal"
+                  style={{ animationDelay: `${Math.min(index * 0.04, 0.48)}s` }}
+                >
+                  <StoreProductCard product={product} onSelect={() => openProduct(product)} />
+                </div>
+              ))}
+            </div>
 
             {hasMore ? (
               <div ref={infiniteScrollRef} className="flex flex-col items-center gap-3 py-8">
