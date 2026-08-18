@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-red: #8F0F24;
-  --color-brand-red-dark: #6E0B1A;
+  --color-brand-red: #5C1524;
+  --color-brand-red-dark: #421018;
   --color-brand-gold: #C9A84C;
   --color-brand-night: #111111;
   --color-neutral-pearl: #FFFFFF;
@@ -380,7 +380,7 @@ a,
   @keyframes live-pulse-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgba(143, 15, 36, 0.45);
+      box-shadow: 0 0 0 0 rgba(92, 21, 36, 0.45);
     }
     50% {
       box-shadow: 0 0 0 10px rgba(200, 16, 46, 0);
