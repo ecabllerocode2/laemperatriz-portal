@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { PortalStoreProduct } from "@emperatriz/types";
-import VariantPicker from "@/components/live/VariantPicker";
 import ProductMediaCarousel from "@/components/store/ProductMediaCarousel";
+import StoreVariantPicker from "@/components/store/StoreVariantPicker";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { formatCurrency } from "@/lib/format";
 import { fetchStoreProduct, storeProductToFeatured } from "@/lib/portal-store";
@@ -13,6 +13,9 @@ import {
   formatVariantLabel,
   normalizeProductVariants,
   resolveActiveVariant,
+  resolveConfirmVariantId,
+  resolveVariantSku,
+  variantsAvailableForSale,
   variantsNeedSelection,
 } from "@/lib/product-variants";
 import { catalogProductWhatsAppMessage, catalogWhatsAppUrl } from "@/lib/whatsapp-order";
@@ -51,10 +54,6 @@ export default function StoreProductDetailPage() {
     };
   }, [productId]);
 
-  useEffect(() => {
-    setSelectedVariantId(null);
-  }, [product?.productId]);
-
   const featuredProduct = useMemo(
     () => (product ? storeProductToFeatured(product) : null),
     [product],
@@ -65,8 +64,18 @@ export default function StoreProductDetailPage() {
     [featuredProduct],
   );
 
+  useEffect(() => {
+    const available = variantsAvailableForSale(variants);
+    setSelectedVariantId(available[0]?.id ?? null);
+  }, [product?.productId, variants]);
+
   const activeVariant = useMemo(
     () => resolveActiveVariant(variants, selectedVariantId),
+    [variants, selectedVariantId],
+  );
+
+  const confirmedVariantId = useMemo(
+    () => resolveConfirmVariantId(variants, selectedVariantId),
     [variants, selectedVariantId],
   );
 
@@ -99,13 +108,14 @@ export default function StoreProductDetailPage() {
   const hasProductDiscount = product.earlyPayDiscountPercent > 0;
   const pricing = productDiscountLineTotal(product.price, 1, product.earlyPayDiscountPercent);
   const needsVariant = variantsNeedSelection(variants);
-  const canOrder = product.stock >= 1 && Boolean(activeVariant) && (!needsVariant || selectedVariantId);
+  const displaySku = activeVariant ? resolveVariantSku(activeVariant, product.sku) : product.sku;
+  const canOrder = product.stock >= 1 && Boolean(confirmedVariantId);
   const variantLabel = activeVariant ? formatVariantLabel(activeVariant) : null;
   const whatsappHref = catalogWhatsAppUrl(
     catalogProductWhatsAppMessage({
       productName: product.name,
-      sku: product.sku,
-      variantLabel,
+      sku: displaySku,
+      variantLabel: needsVariant ? variantLabel : null,
     }),
   );
 
@@ -122,17 +132,10 @@ export default function StoreProductDetailPage() {
 
       <div className="overflow-hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 xl:gap-14">
         <div className="space-y-4">
-          {needsVariant ? (
-            <VariantPicker
-              variants={variants}
-              selectedVariantId={selectedVariantId}
-              onSelect={setSelectedVariantId}
-            />
-          ) : null}
           <ProductMediaCarousel media={galleryMedia} productName={product.name} />
         </div>
 
-        <div className="space-y-5 pt-6 lg:pt-2">
+        <div className="space-y-5 pt-6 lg:pt-0">
           <div className="flex flex-wrap items-center gap-2">
             {hasProductDiscount ? (
               <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-brand-gold">
@@ -145,8 +148,19 @@ export default function StoreProductDetailPage() {
             <h1 className="font-display text-3xl font-normal text-brand-night lg:text-4xl xl:text-5xl">
               {product.name}
             </h1>
-            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-neutral-400">SKU {product.sku}</p>
+            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-neutral-400">
+              SKU {displaySku}
+            </p>
           </div>
+
+          {needsVariant ? (
+            <StoreVariantPicker
+              variants={variants}
+              selectedVariantId={selectedVariantId}
+              onSelect={setSelectedVariantId}
+              productSku={product.sku}
+            />
+          ) : null}
 
           {hasProductDiscount ? (
             <div className="flex items-baseline gap-3">

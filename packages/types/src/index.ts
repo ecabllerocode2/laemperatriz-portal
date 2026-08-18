@@ -115,6 +115,10 @@ export interface ProductVariant {
 /** Variante enriquecida para el portal (galería por color/talla). */
 export interface PortalProductVariant {
   id: string;
+  /** SKU de 6 dígitos de la variante, si existe. */
+  sku?: string;
+  /** Nombre descriptivo de la variante (ej. "Rosa dorado"). */
+  name?: string;
   color: string;
   size: string;
   stock: number;
@@ -779,6 +783,8 @@ export type PaymentConcept = "cart_opening" | "note_payment" | "shipping_payment
 export {
   PERSONAL_DELIVERY_MIN_PURCHASE_MXN,
   normalizePostalCode,
+  resolveCustomerPostalCode,
+  resolveCustomerPersonalDeliveryEligible,
   isPersonalDeliveryPostalCode,
   type FulfillmentDeliveryMethod,
 } from "./personal-delivery.js";

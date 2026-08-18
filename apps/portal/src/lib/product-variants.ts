@@ -37,10 +37,18 @@ export function formatVariantLabel(variant: Pick<PortalProductVariant, "color" |
 }
 
 export function formatVariantDisplayLabel(
-  variant: Pick<PortalProductVariant, "color" | "size">,
+  variant: Pick<PortalProductVariant, "color" | "size" | "name">,
   index = 0,
 ): string {
+  if (variant.name?.trim()) return variant.name.trim();
   return formatVariantLabel(variant) ?? `Variante ${index + 1}`;
+}
+
+export function resolveVariantSku(
+  variant: Pick<PortalProductVariant, "sku">,
+  productSku: string,
+): string {
+  return variant.sku?.trim() || productSku;
 }
 
 export function resolveAutoVariantId(variants: PortalProductVariant[]): string | null {
@@ -67,8 +75,7 @@ export function resolveActiveVariant(
 ): PortalProductVariant | null {
   const available = variantsAvailableForSale(variants);
   if (selectedVariantId) {
-    return available.find((variant) => variant.id === selectedVariantId) ?? null;
+    return available.find((variant) => variant.id === selectedVariantId) ?? available[0] ?? null;
   }
-  if (available.length === 1) return available[0]!;
   return available[0] ?? null;
 }

@@ -1,7 +1,7 @@
 import { Facebook } from "lucide-react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
-import { CATALOG_SECTION_ID, openCatalogSection } from "@/lib/catalog-scroll";
+import { CATALOG_SECTION_ID, goToStoreHome, openCatalogSection } from "@/lib/catalog-scroll";
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 import { catalogWhatsAppUrl } from "@/lib/whatsapp-order";
 
@@ -12,6 +12,7 @@ export default function PortalHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const onCatalog = location.pathname === "/" && location.hash === `#${CATALOG_SECTION_ID}`;
+  const onHome = location.pathname === "/" && !location.hash;
 
   const goToCatalog = () => {
     if (location.pathname !== "/") {
@@ -21,10 +22,22 @@ export default function PortalHeader() {
     openCatalogSection();
   };
 
+  const handleGoHome = () => {
+    if (location.pathname !== "/") {
+      navigate("/");
+      return;
+    }
+    goToStoreHome();
+  };
+
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200/60 bg-white/90 backdrop-blur-md">
       <div className="portal-shell-store flex items-center justify-between gap-3 py-4 sm:gap-4">
-        <NavLink to="/" className="flex min-h-0 min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={handleGoHome}
+          className="flex min-h-0 min-w-0 shrink-0 items-center gap-2 sm:gap-3"
+        >
           <img
             src="/favicon.jpeg"
             alt="La Emperatriz"
@@ -33,18 +46,16 @@ export default function PortalHeader() {
           <span className="hidden font-display text-base tracking-tight text-brand-night sm:inline sm:text-lg">
             La Emperatriz
           </span>
-        </NavLink>
+        </button>
 
         <nav className="flex min-w-0 flex-1 items-center justify-center gap-5 sm:gap-8">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `${navItemClass} ${isActive && !onCatalog ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`
-            }
+          <button
+            type="button"
+            onClick={handleGoHome}
+            className={`${navItemClass} min-h-0 min-w-0 ${onHome ? "text-brand-night" : "text-neutral-400 hover:text-brand-night"}`}
           >
             Inicio
-          </NavLink>
+          </button>
           <button
             type="button"
             onClick={goToCatalog}

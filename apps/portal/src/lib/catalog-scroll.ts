@@ -1,5 +1,20 @@
 export const CATALOG_SECTION_ID = "catalogo";
 
+export function scrollToTop(behavior: ScrollBehavior = "smooth") {
+  window.scrollTo({ top: 0, behavior });
+}
+
+export function clearCatalogHash() {
+  if (window.location.pathname === "/" && window.location.hash) {
+    window.history.pushState(null, "", "/");
+  }
+}
+
+export function goToStoreHome(behavior: ScrollBehavior = "smooth") {
+  clearCatalogHash();
+  scrollToTop(behavior);
+}
+
 export function scrollToCatalogSection(behavior: ScrollBehavior = "smooth") {
   document.getElementById(CATALOG_SECTION_ID)?.scrollIntoView({
     behavior,
