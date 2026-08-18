@@ -108,7 +108,7 @@ export default function StorePage() {
                 onClick={() => setCategoryId(null)}
                 className={categoryChipClass(categoryId === null)}
               >
-                Todas
+                Recientes
               </button>
               {categoryOptions.map((category) => (
                 <button

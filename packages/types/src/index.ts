@@ -678,6 +678,8 @@ export interface PortalStoreProduct {
   earlyPayDiscountPercent: number;
   /** % de pronto pago del canal verde/azul (0 en naranja). */
   channelEarlyPayPercent: number;
+  /** Fecha en que el producto quedó visible en tienda (ISO). */
+  storeListedAt?: string;
   variants?: PortalProductVariant[];
 }
 

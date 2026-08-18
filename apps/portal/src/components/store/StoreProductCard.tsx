@@ -1,6 +1,7 @@
 import type { PortalStoreProduct } from "@emperatriz/types";
 import { formatCurrency } from "@/lib/format";
 import { productDiscountLineTotal } from "@/lib/sale-channels";
+import { isStoreProductNew } from "@/lib/store-product-new";
 
 interface StoreProductCardProps {
   product: PortalStoreProduct;
@@ -13,6 +14,7 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
   const soldOut = product.stock < 1;
   const variantCount = product.variants?.length ?? 0;
   const showVariantCount = variantCount > 1;
+  const isNew = isStoreProductNew(product.storeListedAt);
 
   return (
     <button
@@ -42,6 +44,11 @@ export default function StoreProductCard({ product, onSelect }: StoreProductCard
         {showVariantCount ? (
           <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-brand-night shadow-sm">
             {variantCount} variantes
+          </span>
+        ) : null}
+        {isNew ? (
+          <span className="absolute bottom-2 left-2 rounded-full bg-brand-red px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
+            nuevo
           </span>
         ) : null}
         {soldOut ? (
