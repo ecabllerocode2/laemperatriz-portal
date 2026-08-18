@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { PortalStoreProduct } from "@emperatriz/types";
-import ProductMediaCarousel from "@/components/store/ProductMediaCarousel";
-import StoreVariantPicker from "@/components/store/StoreVariantPicker";
+import ProductVariantMediaGallery from "@/components/store/ProductVariantMediaGallery";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { formatCurrency } from "@/lib/format";
 import { fetchStoreProduct, storeProductToFeatured } from "@/lib/portal-store";
-import { variantGalleryMedia } from "@/lib/product-media";
 import { productDiscountLineTotal } from "@/lib/sale-channels";
 import {
+  formatVariantDisplayLabel,
   formatVariantLabel,
   normalizeProductVariants,
   resolveActiveVariant,
@@ -79,10 +78,7 @@ export default function StoreProductDetailPage() {
     [variants, selectedVariantId],
   );
 
-  const galleryMedia = useMemo(
-    () => (product ? variantGalleryMedia(activeVariant, product) : []),
-    [product, activeVariant],
-  );
+  const availableVariants = useMemo(() => variantsAvailableForSale(variants), [variants]);
 
   if (loading) {
     return (
@@ -111,6 +107,13 @@ export default function StoreProductDetailPage() {
   const displaySku = activeVariant ? resolveVariantSku(activeVariant, product.sku) : product.sku;
   const canOrder = product.stock >= 1 && Boolean(confirmedVariantId);
   const variantLabel = activeVariant ? formatVariantLabel(activeVariant) : null;
+  const selectedVariantName =
+    activeVariant && needsVariant
+      ? formatVariantDisplayLabel(
+          activeVariant,
+          availableVariants.findIndex((variant) => variant.id === activeVariant.id),
+        )
+      : null;
   const whatsappHref = catalogWhatsAppUrl(
     catalogProductWhatsAppMessage({
       productName: product.name,
@@ -131,9 +134,13 @@ export default function StoreProductDetailPage() {
       </button>
 
       <div className="overflow-hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 xl:gap-14">
-        <div className="space-y-4">
-          <ProductMediaCarousel media={galleryMedia} productName={product.name} />
-        </div>
+        <ProductVariantMediaGallery
+          variants={variants}
+          selectedVariantId={selectedVariantId}
+          onSelectVariant={setSelectedVariantId}
+          product={product}
+          productName={product.name}
+        />
 
         <div className="space-y-5 pt-6 lg:pt-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -151,16 +158,10 @@ export default function StoreProductDetailPage() {
             <p className="mt-2 text-xs uppercase tracking-[0.18em] text-neutral-400">
               SKU {displaySku}
             </p>
+            {selectedVariantName ? (
+              <p className="mt-2 text-sm text-neutral-600">{selectedVariantName}</p>
+            ) : null}
           </div>
-
-          {needsVariant ? (
-            <StoreVariantPicker
-              variants={variants}
-              selectedVariantId={selectedVariantId}
-              onSelect={setSelectedVariantId}
-              productSku={product.sku}
-            />
-          ) : null}
 
           {hasProductDiscount ? (
             <div className="flex items-baseline gap-3">
