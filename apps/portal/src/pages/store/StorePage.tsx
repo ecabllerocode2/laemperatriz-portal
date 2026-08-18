@@ -47,9 +47,12 @@ export default function StorePage() {
     () =>
       categories
         .map((category) => ({ id: category.id, label: category.name }))
-        .sort((a, b) => a.label.localeCompare(b.label, "es")),
+        .sort((a, b) => a.label.localeCompare(b.label, "es", { sensitivity: "base" })),
     [categories],
   );
+
+  const categoryChipClass = (active: boolean) =>
+    `catalog-category-chip ${active ? "catalog-category-chip--active" : "catalog-category-chip--idle"}`;
 
   const featuredProducts = useMemo(() => {
     if (debouncedSearch || categoryId) return [];
@@ -140,11 +143,7 @@ export default function StorePage() {
               <button
                 type="button"
                 onClick={() => setCategoryId(null)}
-                className={`min-h-0 min-w-0 rounded-full px-2.5 py-1 text-[0.58rem] font-medium uppercase tracking-[0.08em] transition duration-300 sm:px-3 sm:text-[0.62rem] ${
-                  categoryId === null
-                    ? "bg-brand-red text-white"
-                    : "bg-white text-brand-night ring-1 ring-neutral-200 hover:ring-brand-red/40"
-                }`}
+                className={categoryChipClass(categoryId === null)}
               >
                 Todas
               </button>
@@ -153,11 +152,7 @@ export default function StorePage() {
                   key={category.id}
                   type="button"
                   onClick={() => setCategoryId(category.id)}
-                  className={`min-h-0 min-w-0 rounded-full px-2.5 py-1 text-[0.58rem] font-medium capitalize tracking-[0.04em] transition duration-300 sm:px-3 sm:text-[0.62rem] ${
-                    categoryId === category.id
-                      ? "bg-brand-red text-white"
-                      : "bg-white text-brand-night ring-1 ring-neutral-200 hover:ring-brand-red/40"
-                  }`}
+                  className={categoryChipClass(categoryId === category.id)}
                 >
                   {category.label}
                 </button>
